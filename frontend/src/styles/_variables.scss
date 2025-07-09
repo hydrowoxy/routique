@@ -1,0 +1,36 @@
+// Base colors (dark theme by default)
+$primary: #d96eb9;
+$secondary: #b463c1;
+$accent: #ff9fcf;
+$background: #111;
+$text: #fefefe;
+$muted: #999;
+
+// Light theme overrides
+$light-primary: #c8509b;
+$light-secondary: #b25cd0;
+$light-accent: #ff83b4;
+$light-background: #f9f7fc;
+$light-text: #111;
+$light-muted: #555;
+
+// CSS custom properties
+:root {
+  --primary: #{$primary};
+  --secondary: #{$secondary};
+  --accent: #{$accent};
+  --background: #{$background};
+  --text: #{$text};
+  --muted: #{$muted};
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --primary: #{$light-primary};
+    --secondary: #{$light-secondary};
+    --accent: #{$light-accent};
+    --background: #{$light-background};
+    --text: #{$light-text};
+    --muted: #{$light-muted};
+  }
+}

@@ -1,0 +1,17 @@
+$primary: #0090ff;       
+$secondary: #f996ff;     
+$accent: #ff2097;        
+$background: #f8f9fb;    
+$text: #0f172a;          
+$muted: #94a3b8;         
+
+:root {
+  --primary: #{$primary};
+  --secondary: #{$secondary};
+  --accent: #{$accent};
+  --background: #{$background};
+  --text: #{$text};
+  --muted: #{$muted};
+}
+
+// https://www.realtimecolors.com/?colors=000b1f-f5f8ff-0090ff-f996ff-ff2097&fonts=Inter-Inter

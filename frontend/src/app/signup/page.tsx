@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -10,6 +11,13 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { session, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    if (!authLoading && session) {
+      router.push('/')
+    }
+  }, [session, authLoading, router])
 
   const handleSignup = async () => {
     setLoading(true)

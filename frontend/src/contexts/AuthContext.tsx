@@ -1,57 +1,67 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 
 type AuthContextType = {
   session: Session | null;
   loading: boolean;
 };
 
-// wraps the whole app to provide authentication context
 const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
 });
 
-// sets up the provider for authentication context
+// provider
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // create profile on first verified login
+  const ensureProfile = async (user: User) => {
+    const { data: existing } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    if (existing) return;
+
+    const username = user.user_metadata?.username;
+    const display_name = user.user_metadata?.display_name;
+
+    if (!username || !display_name) return;
+
+    const { error } = await supabase.from("profiles").insert({
+      id: user.id,
+      username,
+      display_name,
+    });
+
+    if (error) console.error("Failed to create profile:", error.message);
+  };
+
+  // initial fetch + listener
   useEffect(() => {
-    const getInitialSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) console.error("Error fetching session:", error);
+    (async () => {
+      const { data } = await supabase.auth.getSession();
       setSession(data.session);
       setLoading(false);
-    };
+      if (data.session?.user) await ensureProfile(data.session.user);
+    })();
 
-    getInitialSession();
-
-    // listen for auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
-
-    // cleanup listener on unmount
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_evt, s) => {
+      setSession(s);
+      if (s?.user) await ensureProfile(s.user);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  const contextValue = useMemo(
-    () => ({ session, loading }),
-    [session, loading]
-  );
+  const value = useMemo(() => ({ session, loading }), [session, loading]);
 
-  return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// lets other components access the authentication context
 export const useAuth = () => useContext(AuthContext);

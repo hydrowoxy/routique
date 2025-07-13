@@ -3,12 +3,16 @@
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation';
+
 
 export default function Nav() {
   const { session } = useAuth()
+  const router = useRouter();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut();
+    router.push('/');
   }
 
   return (
@@ -17,6 +21,7 @@ export default function Nav() {
       {session ? (
         <>
           <Link href="/dashboard">Dashboard</Link>
+          <Link href="/create">Create</Link>
           <button onClick={handleLogout}>Logout</button>
         </>
       ) : (

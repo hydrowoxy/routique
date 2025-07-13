@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && session) {
-      router.push('/')
+      router.push('/login')
     }
   }, [session, authLoading, router])
 
@@ -27,7 +27,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push('/')
+      router.push('/login')
     }
   }
 

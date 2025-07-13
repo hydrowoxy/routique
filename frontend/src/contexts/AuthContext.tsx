@@ -1,8 +1,15 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import type { Session, User } from "@supabase/supabase-js";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  ReactNode,
+} from 'react';
+import { supabase } from '@/lib/supabase';
+import type { Session, User } from '@supabase/supabase-js';
 
 type AuthContextType = {
   session: Session | null;
@@ -14,36 +21,35 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
-// provider
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // create profile on first verified login
   const ensureProfile = async (user: User) => {
     const { data: existing } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
       .single();
 
     if (existing) return;
 
-    const username = user.user_metadata?.username;
-    const display_name = user.user_metadata?.display_name;
+    const { username, display_name } = user.user_metadata as {
+      username?: string;
+      display_name?: string;
+    };
 
     if (!username || !display_name) return;
 
-    const { error } = await supabase.from("profiles").insert({
+    const { error } = await supabase.from('profiles').insert({
       id: user.id,
       username,
       display_name,
     });
 
-    if (error) console.error("Failed to create profile:", error.message);
+    if (error) console.error('Failed to create profile:', error.message);
   };
 
-  // initial fetch + listener
   useEffect(() => {
     (async () => {
       const { data } = await supabase.auth.getSession();
@@ -52,14 +58,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (data.session?.user) await ensureProfile(data.session.user);
     })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_evt, s) => {
-      setSession(s);
-      if (s?.user) await ensureProfile(s.user);
-    });
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      async (_evt, s) => {
+        setSession(s);
+        if (s?.user) await ensureProfile(s.user);
+        setLoading(false);
+      },
+    );
+
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const value = useMemo(() => ({ session, loading }), [session, loading]);
+  const value = useMemo(
+    () => ({ session, loading }),
+    [session, loading],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

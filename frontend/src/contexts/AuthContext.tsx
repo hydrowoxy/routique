@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  /* create profile once a user’s e-mail is verified */
   const ensureProfile = async (user: User) => {
     const { data: existing } = await supabase
       .from('profiles')
@@ -51,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    // initial fetch
     (async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
@@ -58,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.session?.user) await ensureProfile(data.session.user);
     })();
 
+    // subscribe to auth changes
     const { data: sub } = supabase.auth.onAuthStateChange(
       async (_evt, s) => {
         setSession(s);

@@ -1,19 +1,24 @@
-import { supabase } from '@/lib/supabaseServer'  // ✅ not the client one!
+import { notFound } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
-export default async function UsernamePage({ params }: { params: { username: string } }) {
-  const { username } = params
+export const dynamic = 'force-dynamic'
 
-  const { data: profile, error } = await supabase()
-    .from('profiles')
-    .select('id, username, display_name')
-    .eq('username', username)
-    .single()
+export default async function UsernamePage(props: { params: Promise<{ username: string }> }) {
+    const params = await props.params
+    const { username } = params
 
-  if (!profile) return notFound()
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, username, display_name')
+        .eq('username', username)
+        .single()
 
-  return (
-    <div>
-      <h1>{profile.display_name || profile.username}&apos;s Routines</h1>
-    </div>
-  )
+    if (!profile) return notFound()
+
+    return (
+        <div>
+            <h1>{profile.display_name || profile.username}&apos;s Routines</h1>
+            {/* todo Render public profile info here */}
+        </div>
+    )
 }

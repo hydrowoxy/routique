@@ -64,14 +64,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: sub } = supabase.auth.onAuthStateChange(
       async (_evt, s) => {
         setSession(s);
-        if (s?.user) await ensureProfile(s.user);
         setLoading(false);
+        if (s?.user) {
+          await ensureProfile(s.user);
+        } else {
+          redirectToLogin();
+        }
       },
     );
 
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const redirectToLogin = () => {
+    const current = window.location.pathname;
+    if (current !== '/login' && current !== '/signup') {
+      window.location.href = '/login';
+    }
+  }
   const value = useMemo(
     () => ({ session, loading }),
     [session, loading],

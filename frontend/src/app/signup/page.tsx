@@ -60,7 +60,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: "http://localhost:3000/dashboard",
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
         data: {
           username,
           display_name: displayName,
@@ -83,7 +83,7 @@ export default function SignupPage() {
     const { error: resendErr } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: "http://localhost:3000/dashboard" },
+      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` },
     });
     setLoading(false);
     if (resendErr) setError("Resend failed: " + resendErr.message);

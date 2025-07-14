@@ -1,33 +1,25 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 export default function Nav() {
-  const { session } = useAuth()
-  const [username, setUsername] = useState<string | null>(null)
+  const { session } = useAuth();
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (session?.user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (data?.username) {
-          setUsername(data.username)
-        }
-      } else {
-        setUsername(null)
-      }
-    }
+    if (session?.user) {
+      const authUsername =
+        session.user.user_metadata?.username ||
+        session.user.email?.split("@")[0] ||
+        null;
 
-    fetchUserProfile()
-  }, [session])
+      setUsername(authUsername);
+    } else {
+      setUsername(null);
+    }
+  }, [session]);
 
   return (
     <nav>
@@ -46,5 +38,5 @@ export default function Nav() {
         </>
       )}
     </nav>
-  )
+  );
 }

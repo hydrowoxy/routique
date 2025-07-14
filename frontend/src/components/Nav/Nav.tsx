@@ -1,27 +1,25 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation';
-
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 export default function Nav() {
-  const { session } = useAuth()
-  const router = useRouter();
+  const { session } = useAuth();
+  const [username, setUsername] = useState<string | null>(null);
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout failed:', error?.message || error);
-      } else {
-        router.push('/');
-      }
-    } catch (err) {
-      console.error('Unexpected error during logout:', err);
+  useEffect(() => {
+    if (session?.user) {
+      const authUsername =
+        session.user.user_metadata?.username ||
+        session.user.email?.split("@")[0] ||
+        null;
+
+      setUsername(authUsername);
+    } else {
+      setUsername(null);
     }
-  }
+  }, [session]);
 
   return (
     <nav>
@@ -30,14 +28,15 @@ export default function Nav() {
         <>
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/create">Create</Link>
-          <button onClick={handleLogout}>Logout</button>
+          <Link href="/settings">Settings</Link>
+          {username && <Link href={`/${username}`}>My Page</Link>}
         </>
       ) : (
         <>
-          <Link href="/login">Login</Link>
           <Link href="/signup">Sign Up</Link>
+          <Link href="/login">Log In</Link>
         </>
       )}
     </nav>
-  )
+  );
 }

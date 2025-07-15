@@ -7,6 +7,8 @@ import Notes from '@/components/RoutinePage/Notes/Notes'
 import Products from '@/components/RoutinePage/Products/Products'
 import Tags from '@/components/RoutinePage/Tags/Tags'
 import FavouriteArea from '@/components/RoutinePage/FavouriteArea/FavouriteArea'
+import ViewArea from '../../../components/RoutinePage/ViewArea/ViewArea'
+import ShareButton from '@/components/RoutinePage/ShareButton/ShareButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,6 +55,13 @@ export default async function RoutinePage({ params }: { params: { id: string } }
         initialViews={routine.view_count}
         initialFavourites={routine.favourite_count}
       />
+
+      <ViewArea
+        routineId={routine.id}
+        initialViews={routine.view_count}
+      />
+
+      <ShareButton routineId={id} />
     </main>
   )
 }

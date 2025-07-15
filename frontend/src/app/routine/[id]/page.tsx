@@ -6,12 +6,12 @@ import Image from '@/components/RoutinePage/Image/Image'
 import Notes from '@/components/RoutinePage/Notes/Notes'
 import Products from '@/components/RoutinePage/Products/Products'
 import Tags from '@/components/RoutinePage/Tags/Tags'
-import Meta from '@/components/RoutinePage/Meta/Meta'
+import FavouriteArea from '@/components/RoutinePage/FavouriteArea/FavouriteArea'
 
 export const dynamic = 'force-dynamic'
 
 export default async function RoutinePage({ params }: { params: { id: string } }) {
-  const { id } = params
+  const { id } = await params
 
   const { data: routine, error } = await supabase
     .from('routines')
@@ -20,12 +20,11 @@ export default async function RoutinePage({ params }: { params: { id: string } }
              products,
              profiles: user_id ( id, username, display_name )`)
     .eq('id', id)
-    .single()
+    .single() 
 
   if (error) console.error('[routine fetch]', error.message)
   if (!routine) return notFound()
 
-  // Update view count (not awaited on purpose)
   supabase
     .from('routines')
     .update({ view_count: (routine.view_count ?? 0) + 1 })
@@ -49,10 +48,10 @@ export default async function RoutinePage({ params }: { params: { id: string } }
         <Tags tags={routine.tags} />
       )}
 
-      <Meta
+      <FavouriteArea
         id={routine.id}
-        views={routine.view_count}
-        favourites={routine.favourite_count}
+        initialViews={routine.view_count}
+        initialFavourites={routine.favourite_count}
       />
     </main>
   )

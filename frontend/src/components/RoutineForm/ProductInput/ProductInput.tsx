@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 type Product = {
   name: string;
@@ -16,9 +16,28 @@ export default function ProductInput({ products, onChange }: Props) {
   };
 
   const updateProduct = (index: number, updated: Product) => {
-    const newList = [...products];
-    newList[index] = updated;
-    onChange(newList);
+    const isEmpty =
+      !updated.name.trim() && updated.links.every((l) => !l.trim());
+
+    if (isEmpty) {
+      removeProduct(index);
+    } else {
+      const newList = [...products];
+      newList[index] = updated;
+      onChange(newList);
+    }
+  };
+
+  const updateLink = (prodIndex: number, linkIndex: number, newVal: string) => {
+    const product = products[prodIndex];
+    const newLinks = [...product.links];
+    newLinks[linkIndex] = newVal;
+
+    // Remove empty links (but only if more than 1 exists)
+    const cleanedLinks =
+      newLinks.length > 1 ? newLinks.filter((l) => l.trim()) : newLinks;
+
+    updateProduct(prodIndex, { ...product, links: cleanedLinks });
   };
 
   const removeProduct = (index: number) => {
@@ -44,11 +63,7 @@ export default function ProductInput({ products, onChange }: Props) {
               type="text"
               placeholder="Product link"
               value={link}
-              onChange={(e) => {
-                const newLinks = [...product.links];
-                newLinks[j] = e.target.value;
-                updateProduct(i, { ...product, links: newLinks });
-              }}
+              onChange={(e) => updateLink(i, j, e.target.value)}
             />
           ))}
           <button

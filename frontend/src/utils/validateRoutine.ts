@@ -54,11 +54,16 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
   // --- Tag processing ---
   const tagList = input.tagsRaw
     .split(",")
-    .map(t => t.trim())
+    .map(t => t.trim().toLowerCase())
     .filter(Boolean);
 
   if (tagList.length > MAX_TAGS) {
     return { ok: false, msg: `Too many tags (max ${MAX_TAGS}).` };
+  }
+
+  const tagSet = new Set(tagList);
+  if (tagSet.size !== tagList.length) {
+    return { ok: false, msg: "Tags must be unique." };
   }
 
   for (const tag of tagList) {

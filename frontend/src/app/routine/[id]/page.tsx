@@ -10,6 +10,7 @@ import FavouriteArea from '@/components/RoutinePage/FavouriteArea/FavouriteArea'
 import ViewArea from '../../../components/RoutinePage/ViewArea/ViewArea'
 import ShareButton from '@/components/RoutinePage/ShareButton/ShareButton'
 import EditButton from '@/components/RoutinePage/EditButton/EditButton'
+import DeleteButton from '../../../components/RoutinePage/DeleteButton/DeleteButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,6 +65,7 @@ export default async function RoutinePage({ params }: { params: { id: string } }
 
       <ShareButton routineId={id} />
       <EditButton routineId={id} />
+      <DeleteButton routineId={id} imageKey={routine.image_path} />
     </main>
   )
 }

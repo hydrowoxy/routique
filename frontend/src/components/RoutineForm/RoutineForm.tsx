@@ -14,6 +14,8 @@ import Loading from "../Loading/Loading";
 
 import { useRouter } from "next/navigation";
 
+import { validateRoutine } from "@/utils/validateRoutine";
+
 type Product = { name: string; links: string[] };
 
 export default function RoutineForm() {
@@ -45,9 +47,21 @@ export default function RoutineForm() {
     setErr("");
     setSuccess(false);
 
-    if (!title.trim()) return setErr("Title is required.");
-    if (!imagePath) return setErr("Please upload an image.");
+    const result = validateRoutine({
+      title,
+      description,
+      notes,
+      tagsRaw: tags,
+      imagePath,
+      products,
+    });
 
+    if (!result.ok) {
+      setErr(result.msg!);
+      return;
+    }
+
+    const { cleanedProducts, cleanedTags } = result.data!;
     setSaving(true);
 
     const { error } = await supabase.from("routines").insert({
@@ -58,9 +72,9 @@ export default function RoutineForm() {
       image_path: imagePath,
       view_count: 0,
       favourite_count: 0,
-      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
-      products,
-      notes: notes.trim() || null,
+      tags: cleanedTags,
+      products: cleanedProducts,
+      notes: notes.trim(),
     });
 
     setSaving(false);

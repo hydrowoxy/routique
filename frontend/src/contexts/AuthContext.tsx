@@ -21,11 +21,17 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
+const protectedRoutes = [
+  '/settings',
+  '/create',
+  '/dashboard',
+  '/routine', // we'll check for /routine/[id]/edit with startsWith
+];
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /* create profile once a user’s e-mail is verified */
   const ensureProfile = async (user: User) => {
     const { data: existing } = await supabase
       .from('profiles')
@@ -52,12 +58,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    const current = window.location.pathname;
+
+    const isProtected = protectedRoutes.some((path) =>
+      current === path || current.startsWith(`${path}/`) && current.endsWith('/edit')
+    );
+
     // initial fetch
     (async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
       setLoading(false);
-      if (data.session?.user) await ensureProfile(data.session.user);
+      if (data.session?.user) {
+        await ensureProfile(data.session.user);
+      } else if (isProtected) {
+        redirectToLogin();
+      }
     })();
 
     // subscribe to auth changes
@@ -67,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         if (s?.user) {
           await ensureProfile(s.user);
-        } else {
+        } else if (isProtected) {
           redirectToLogin();
         }
       },
@@ -81,7 +97,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (current !== '/login' && current !== '/signup') {
       window.location.href = '/login';
     }
-  }
+  };
+
   const value = useMemo(
     () => ({ session, loading }),
     [session, loading],

@@ -9,8 +9,7 @@ import Tags from '@/components/RoutinePage/Tags/Tags'
 import FavouriteArea from '@/components/RoutinePage/FavouriteArea/FavouriteArea'
 import ViewArea from '../../../components/RoutinePage/ViewArea/ViewArea'
 import ShareButton from '@/components/RoutinePage/ShareButton/ShareButton'
-import EditButton from '@/components/RoutinePage/EditButton/EditButton'
-import DeleteButton from '../../../components/RoutinePage/DeleteButton/DeleteButton'
+import OwnerOnly from '@/components/RoutinePage/OwnerOnly/OwnerOnly'
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +39,9 @@ export default async function RoutinePage({ params }: { params: { id: string } }
     .update({ view_count: (routine.view_count ?? 0) + 1 })
     .eq('id', id);
 
+      console.log('[Session User ID]', session?.user.id);
+      console.log('[Routine Owner ID]', routine.profiles.id);
+
   return (
     <main>
       <Header title={routine.title} profile={routine.profiles} />
@@ -67,13 +69,13 @@ export default async function RoutinePage({ params }: { params: { id: string } }
       <ViewArea routineId={routine.id} initialViews={routine.view_count} />
       <ShareButton routineId={id} />
 
+
       {/* Only show if current user is the owner */}
-      {session?.user.id === routine.profiles.id && (
-        <>
-          <EditButton routineId={id} />
-          <DeleteButton routineId={id} imageKey={routine.image_path} />
-        </>
-      )}
+      <OwnerOnly
+        routineId={id}
+        imageKey={routine.image_path}
+        ownerId={routine.profiles.id}
+      />
     </main>
   );
 }

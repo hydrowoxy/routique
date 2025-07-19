@@ -13,24 +13,26 @@ import ImageInput from "./ImageInput/ImageInput";
 import Loading from "../Loading/Loading";
 
 import { useRouter } from "next/navigation";
-
 import { validateRoutine } from "@/utils/validateRoutine";
 
 type Product = { name: string; links: string[] };
 
 export default function RoutineForm() {
   const { session, loading: authLoading } = useAuth();
+  const router = useRouter();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
-  const [imagePath, setImagePath] = useState("");
+
+  const [imageKey, setImageKey] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
   const [success, setSuccess] = useState(false);
-
-  const router = useRouter();
 
   useEffect(() => {
     if (!authLoading && !session?.user) {
@@ -38,30 +40,28 @@ export default function RoutineForm() {
     }
   }, [authLoading, session, router]);
 
-  if (authLoading || !session?.user) {
-    return <Loading />;
-  }
+  if (authLoading || !session?.user) return <Loading />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
     setSuccess(false);
 
-    const result = validateRoutine({
+    const check = validateRoutine({
       title,
       description,
       notes,
       tagsRaw: tags,
-      imagePath,
+      imagePath: imageKey,
       products,
     });
 
-    if (!result.ok) {
-      setErr(result.msg!);
+    if (!check.ok) {
+      setErr(check.msg!);
       return;
     }
 
-    const { cleanedProducts, cleanedTags } = result.data!;
+    const { cleanedProducts, cleanedTags } = check.data!;
     setSaving(true);
 
     const { error } = await supabase.from("routines").insert({
@@ -69,12 +69,12 @@ export default function RoutineForm() {
       user_id: session.user.id,
       title: title.trim(),
       description: description.trim(),
-      image_path: imagePath,
-      view_count: 0,
-      favourite_count: 0,
+      image_path: imageKey,
+      notes: notes.trim(),
       tags: cleanedTags,
       products: cleanedProducts,
-      notes: notes.trim(),
+      view_count: 0,
+      favourite_count: 0,
     });
 
     setSaving(false);
@@ -88,22 +88,41 @@ export default function RoutineForm() {
       setNotes("");
       setTags("");
       setProducts([]);
-      setImagePath("");
+      setImageKey("");
+      setPreviewUrl("");
+
+      const username = session.user.user_metadata?.username;
+      if (username) {
+        setTimeout(() => router.push(`/${username}`), 1000);
+      }
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Create Routine</h2>
-      {success && <p style={{ color: "green" }}>Routine created ✔️</p>}
+      {success && <p style={{ color: "green" }}>Routine created. Redirecting…</p>}
       {err && <p style={{ color: "red" }}>{err}</p>}
+
       <TitleInput value={title} onChange={setTitle} />
       <DescriptionInput value={description} onChange={setDescription} />
-      <ImageInput onUpload={setImagePath} existingUrl={imagePath} />
+
+      <ImageInput
+        existingUrl={previewUrl}
+        onUpload={(newKey) => {
+          setImageKey(newKey);
+          const { data } = supabase.storage
+            .from("routines")
+            .getPublicUrl(newKey);
+          setPreviewUrl(data?.publicUrl || "");
+        }}
+      />
+
       <ProductInput products={products} onChange={setProducts} />
       <NotesInput value={notes} onChange={setNotes} />
       <TagInput value={tags} onChange={setTags} />
-      <button type="submit" disabled={saving || !title.trim() || !imagePath}>
+
+      <button type="submit" disabled={saving || !title.trim() || !imageKey}>
         {saving ? "Saving…" : "Create Routine"}
       </button>
     </form>

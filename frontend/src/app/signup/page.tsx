@@ -34,16 +34,21 @@ export default function SignupPage() {
       return;
     }
     if (!validUsername(username)) {
-      setError("Username must start with a letter, be 3–20 chars, and only contain letters, numbers, and underscores.");
+      setError(
+        "Username must start with a letter, be 3–20 chars, and only contain letters, numbers, and underscores."
+      );
       return;
     }
     if (!validDisplay(displayName)) {
-      setError("Display name must be 2–50 chars and may contain letters, numbers, spaces, dashes, and apostrophes.");
+      setError(
+        "Display name must be 2–50 chars and may contain letters, numbers, spaces, dashes, and apostrophes."
+      );
       return;
     }
 
     setLoading(true);
 
+    // Check if username is taken
     const { data: taken } = await supabase
       .from("profiles")
       .select("id")
@@ -56,6 +61,21 @@ export default function SignupPage() {
       return;
     }
 
+    const { data: emailTaken } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .limit(1);
+
+    if ((emailTaken?.length ?? 0) > 0) {
+      setError(
+        "An account with this email already exists. Try logging in instead."
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Attempt sign up directly
     const { data, error: signupErr } = await supabase.auth.signUp({
       email,
       password,
@@ -68,8 +88,20 @@ export default function SignupPage() {
       },
     });
 
-    if (signupErr || !data?.user) {
-      setError(signupErr?.message || "Signup failed.");
+    if (signupErr) {
+      if (signupErr.message === "User already registered") {
+        setError(
+          "An account with this email already exists. Try logging in instead."
+        );
+      } else {
+        setError(signupErr.message || "Signup failed.");
+      }
+      setLoading(false);
+      return;
+    }
+
+    if (!data?.user) {
+      setError("Signup failed.");
       setLoading(false);
       return;
     }
@@ -83,7 +115,9 @@ export default function SignupPage() {
     const { error: resendErr } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` },
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+      },
     });
     setLoading(false);
     if (resendErr) setError("Resend failed: " + resendErr.message);
@@ -93,20 +127,44 @@ export default function SignupPage() {
   return (
     <div>
       <h1>Sign Up</h1>
-      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-      <input placeholder="Display Name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+      <input
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        placeholder="Password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <input
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        placeholder="Display Name"
+        value={displayName}
+        onChange={(e) => setDisplayName(e.target.value)}
+      />
 
-      <button onClick={handleSignup} disabled={loading || !email || !password || !username || !displayName}>
+      <button
+        onClick={handleSignup}
+        disabled={loading || !email || !password || !username || !displayName}
+      >
         {loading ? "Signing up…" : "Sign Up"}
       </button>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && (
         <>
-          <p style={{ color: "green" }}>Check your inbox to confirm your e-mail, then log in.</p>
-          <button onClick={handleResend} disabled={loading || !email}>Resend confirmation e-mail</button>
+          <p style={{ color: "green" }}>
+            Check your inbox to confirm your e-mail, then log in.
+          </p>
+          <button onClick={handleResend} disabled={loading || !email}>
+            Resend confirmation e-mail
+          </button>
         </>
       )}
     </div>

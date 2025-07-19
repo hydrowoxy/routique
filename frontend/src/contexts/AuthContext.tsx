@@ -21,11 +21,17 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
+const protectedRoutes = [
+  '/settings',
+  '/create',
+  '/dashboard',
+  '/routine',
+];
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /* create profile once a user’s e-mail is verified */
   const ensureProfile = async (user: User) => {
     const { data: existing } = await supabase
       .from('profiles')
@@ -40,34 +46,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       display_name?: string;
     };
 
-    if (!username || !display_name) return;
+    if (!username || !display_name || !user.email) return;
 
     const { error } = await supabase.from('profiles').insert({
       id: user.id,
       username,
       display_name,
+      email: user.email,
     });
 
     if (error) console.error('Failed to create profile:', error.message);
   };
 
   useEffect(() => {
-    // initial fetch
+    const current = window.location.pathname;
+
+    const isProtected = protectedRoutes.some((path) =>
+      current === path || current.startsWith(`${path}/`) && current.endsWith('/edit')
+    );
+
     (async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
       setLoading(false);
-      if (data.session?.user) await ensureProfile(data.session.user);
+      if (data.session?.user && data.session.user.confirmed_at) {
+        await ensureProfile(data.session.user);
+      } else if (isProtected) {
+        redirectToLogin();
+      }
     })();
 
-    // subscribe to auth changes
     const { data: sub } = supabase.auth.onAuthStateChange(
       async (_evt, s) => {
         setSession(s);
         setLoading(false);
-        if (s?.user) {
+        if (s?.user && s.user.confirmed_at) {
           await ensureProfile(s.user);
-        } else {
+        } else if (isProtected) {
           redirectToLogin();
         }
       },
@@ -81,7 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (current !== '/login' && current !== '/signup') {
       window.location.href = '/login';
     }
-  }
+  };
+
   const value = useMemo(
     () => ({ session, loading }),
     [session, loading],

@@ -9,12 +9,12 @@ import Tags from '@/components/RoutinePage/Tags/Tags'
 import FavouriteArea from '@/components/RoutinePage/FavouriteArea/FavouriteArea'
 import ViewArea from '../../../components/RoutinePage/ViewArea/ViewArea'
 import ShareButton from '@/components/RoutinePage/ShareButton/ShareButton'
-import EditButton from '@/components/RoutinePage/EditButton/EditButton'
+import OwnerOnly from '@/components/RoutinePage/OwnerOnly/OwnerOnly'
 
-export const dynamic = 'force-dynamic'
+export const dynamic = 'force-dynamic';
 
 export default async function RoutinePage({ params }: { params: { id: string } }) {
-  const { id } = await params
+  const { id } = params;
 
   const { data: routine, error } = await supabase
     .from('routines')
@@ -23,15 +23,24 @@ export default async function RoutinePage({ params }: { params: { id: string } }
              products,
              profiles: user_id ( id, username, display_name )`)
     .eq('id', id)
-    .single() 
+    .single();
 
-  if (error) console.error('[routine fetch]', error.message)
-  if (!routine) return notFound()
+  if (error) console.error('[routine fetch]', error.message);
+  if (!routine) return notFound();
 
+  // Fetch current session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Increment view count (non-blocking)
   supabase
     .from('routines')
     .update({ view_count: (routine.view_count ?? 0) + 1 })
-    .eq('id', id)
+    .eq('id', id);
+
+      console.log('[Session User ID]', session?.user.id);
+      console.log('[Routine Owner ID]', routine.profiles.id);
 
   return (
     <main>
@@ -57,13 +66,16 @@ export default async function RoutinePage({ params }: { params: { id: string } }
         initialFavourites={routine.favourite_count}
       />
 
-      <ViewArea
-        routineId={routine.id}
-        initialViews={routine.view_count}
-      />
-
+      <ViewArea routineId={routine.id} initialViews={routine.view_count} />
       <ShareButton routineId={id} />
-      <EditButton routineId={id} />
+
+
+      {/* Only show if current user is the owner */}
+      <OwnerOnly
+        routineId={id}
+        imageKey={routine.image_path}
+        ownerId={routine.profiles.id}
+      />
     </main>
-  )
+  );
 }

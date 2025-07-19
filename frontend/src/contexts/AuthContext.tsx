@@ -25,7 +25,7 @@ const protectedRoutes = [
   '/settings',
   '/create',
   '/dashboard',
-  '/routine', // we'll check for /routine/[id]/edit with startsWith
+  '/routine',
 ];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -46,12 +46,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       display_name?: string;
     };
 
-    if (!username || !display_name) return;
+    if (!username || !display_name || !user.email) return;
 
     const { error } = await supabase.from('profiles').insert({
       id: user.id,
       username,
       display_name,
+      email: user.email,
     });
 
     if (error) console.error('Failed to create profile:', error.message);
@@ -64,24 +65,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       current === path || current.startsWith(`${path}/`) && current.endsWith('/edit')
     );
 
-    // initial fetch
     (async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
       setLoading(false);
-      if (data.session?.user) {
+      if (data.session?.user && data.session.user.confirmed_at) {
         await ensureProfile(data.session.user);
       } else if (isProtected) {
         redirectToLogin();
       }
     })();
 
-    // subscribe to auth changes
     const { data: sub } = supabase.auth.onAuthStateChange(
       async (_evt, s) => {
         setSession(s);
         setLoading(false);
-        if (s?.user) {
+        if (s?.user && s.user.confirmed_at) {
           await ensureProfile(s.user);
         } else if (isProtected) {
           redirectToLogin();

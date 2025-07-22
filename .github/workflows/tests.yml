@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          path: frontend
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,5 +35,5 @@ jobs:
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Run Trivy filesystem scan (fail on HIGH or CRITICAL)
+      - name: Run Trivy scan (fail on HIGH or CRITICAL)
         run: trivy fs frontend --exit-code 1 --severity HIGH,CRITICAL

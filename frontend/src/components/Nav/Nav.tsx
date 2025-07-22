@@ -26,7 +26,6 @@ export default function Nav() {
       <Link href="/">Home</Link>
       {session ? (
         <>
-          <Link href="/dashboard">Dashboard</Link>
           <Link href="/create">Create</Link>
           <Link href="/settings">Settings</Link>
           {username && <Link href={`/${username}`}>My Page</Link>}

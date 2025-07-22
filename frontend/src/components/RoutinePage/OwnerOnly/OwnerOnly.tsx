@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import EditButton from '../EditButton/EditButton';
 import DeleteButton from '../DeleteButton/DeleteButton';
 
@@ -12,17 +11,10 @@ type Props = {
 };
 
 export default function OwnerOnly({ routineId, imageKey, ownerId }: Props) {
-  const [userId, setUserId] = useState<string | null>(null);
+  const { session } = useAuth();
+  const userId = session?.user?.id ?? null;
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUserId(data?.user?.id ?? null);
-    };
-    fetchUser();
-  }, []);
-
-  if (userId !== ownerId) return null;
+  if (!userId || userId !== ownerId) return null;
 
   return (
     <>

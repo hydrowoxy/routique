@@ -25,7 +25,9 @@ const processImage = (file: File): Promise<Blob> =>
       const canvas = document.createElement("canvas");
       canvas.width = SIZE_PX;
       canvas.height = SIZE_PX;
-      canvas.getContext("2d")!.drawImage(img, sx, sy, side, side, 0, 0, SIZE_PX, SIZE_PX);
+      canvas
+        .getContext("2d")!
+        .drawImage(img, sx, sy, side, side, 0, 0, SIZE_PX, SIZE_PX);
 
       canvas.toBlob(
         (blob) => (blob ? resolve(blob) : reject("Canvas toBlob failed")),
@@ -81,7 +83,9 @@ export default function ImageInput({
 
     try {
       const blob = await processImage(raw);
-      const inferredType = raw.type?.startsWith("image/") ? raw.type : "image/jpeg";
+      const inferredType = raw.type?.startsWith("image/")
+        ? raw.type
+        : "image/jpeg";
       const fileKey = `${uuid()}.jpg`;
       const previousKey = currentKey;
 
@@ -111,7 +115,8 @@ export default function ImageInput({
         console.log("[ImageInput] deleting previousKey:", previousKey);
         const { error: delErr } = await deleteImage(previousKey);
         if (delErr) {
-          console.warn("[ImageInput] deleteImage error:", delErr.message);
+          const msg = typeof delErr === "string" ? delErr : delErr.message;
+          console.warn("[ImageInput] deleteImage error:", msg);
         } else {
           console.log("[ImageInput] deleteImage success for:", previousKey);
         }
@@ -126,8 +131,14 @@ export default function ImageInput({
       setPreview(data?.publicUrl ?? "");
       onUpload(fileKey);
     } catch (err) {
-      console.error("[ImageInput] upload failed:", err.message || err);
-      setError(err.message || "Upload failed");
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Upload failed";
+      console.error("[ImageInput] upload failed:", msg);
+      setError(msg);
     } finally {
       setUploading(false);
     }
@@ -138,13 +149,16 @@ export default function ImageInput({
     if (currentKey && currentKey !== originalKeyRef.current) {
       console.log("[ImageInput] attempting to delete:", currentKey);
       const { error: delErr } = await deleteImage(currentKey);
-      if (delErr) {
-        console.warn("[ImageInput] deleteImage error:", delErr.message);
-      } else {
-        console.log("[ImageInput] deleteImage success for:", currentKey);
-      }
+        if (delErr) {
+          const msg = typeof delErr === "string" ? delErr : delErr.message;
+          console.warn("[ImageInput] deleteImage error:", msg);
+        } else {
+          console.log("[ImageInput] deleteImage success for:", currentKey);
+        }
     } else {
-      console.log("[ImageInput] skipping delete on remove. Conditions not met.");
+      console.log(
+        "[ImageInput] skipping delete on remove. Conditions not met."
+      );
     }
 
     setPreview("");
@@ -157,12 +171,20 @@ export default function ImageInput({
       {preview ? (
         <div>
           <img src={preview} alt="preview" style={{ maxWidth: 200 }} />
-          <button type="button" onClick={remove} disabled={disabled || uploading}>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={disabled || uploading}
+          >
             Remove
           </button>
         </div>
       ) : (
-        <button type="button" onClick={pickFile} disabled={disabled || uploading}>
+        <button
+          type="button"
+          onClick={pickFile}
+          disabled={disabled || uploading}
+        >
           {uploading ? "Uploading…" : "Choose image"}
         </button>
       )}

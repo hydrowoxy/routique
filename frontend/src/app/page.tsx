@@ -1,8 +1,10 @@
+import Explore from '@/components/Explore/Explore';
+
 export default function Home() {
   return (
     <div>
       <main>
-        <h1 className="title">Hello from Routique!</h1>
+        <Explore />
       </main>
     </div>
   );

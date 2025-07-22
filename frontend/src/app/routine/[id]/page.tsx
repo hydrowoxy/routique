@@ -1,50 +1,53 @@
-import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { notFound } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
-import Header from '@/components/RoutinePage/Header/Header'
-import Image from '@/components/RoutinePage/Image/Image'
-import Notes from '@/components/RoutinePage/Notes/Notes'
-import Products from '@/components/RoutinePage/Products/Products'
-import Tags from '@/components/RoutinePage/Tags/Tags'
-import FavouriteArea from '@/components/RoutinePage/FavouriteArea/FavouriteArea'
-import ViewArea from '../../../components/RoutinePage/ViewArea/ViewArea'
-import ShareButton from '@/components/RoutinePage/ShareButton/ShareButton'
-import OwnerOnly from '@/components/RoutinePage/OwnerOnly/OwnerOnly'
+import Header from "@/components/RoutinePage/Header/Header";
+import Image from "@/components/RoutinePage/Image/Image";
+import Notes from "@/components/RoutinePage/Notes/Notes";
+import Products from "@/components/RoutinePage/Products/Products";
+import Tags from "@/components/RoutinePage/Tags/Tags";
+import FavouriteArea from "@/components/RoutinePage/FavouriteArea/FavouriteArea";
+import ViewArea from "../../../components/RoutinePage/ViewArea/ViewArea";
+import ShareButton from "@/components/RoutinePage/ShareButton/ShareButton";
+import OwnerOnly from "@/components/RoutinePage/OwnerOnly/OwnerOnly";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export default async function RoutinePage({ params }: { params: { id: string } }) {
+export default async function RoutinePage(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const params = await props.params;
   const { id } = params;
 
   const { data: routine, error } = await supabase
-    .from('routines')
-    .select(`id, title, description, image_path,
+    .from("routines")
+    .select(
+      `id, title, description, image_path,
              tags, favourite_count, view_count, notes,
              products,
-             profiles: user_id ( id, username, display_name )`)
-    .eq('id', id)
+             profiles: user_id ( id, username, display_name )`
+    )
+    .eq("id", id)
     .single();
 
-  if (error) console.error('[routine fetch]', error.message);
+  if (error) console.error("[routine fetch]", error.message);
   if (!routine) return notFound();
 
-  // Fetch current session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // Increment view count (non-blocking)
-  supabase
-    .from('routines')
-    .update({ view_count: (routine.view_count ?? 0) + 1 })
-    .eq('id', id);
-
-      console.log('[Session User ID]', session?.user.id);
-      console.log('[Routine Owner ID]', routine.profiles.id);
+  // Fix only: handle array vs object for profiles
+  const profile = (Array.isArray(routine.profiles)
+    ? routine.profiles[0]
+    : routine.profiles) as {
+    id: string;
+    username: string;
+    display_name: string | null;
+  };
 
   return (
     <main>
-      <Header title={routine.title} profile={routine.profiles} />
+      <Header
+        title={routine.title}
+        profile={Array.isArray(routine.profiles) ? routine.profiles[0] : routine.profiles}
+      />
 
       {routine.image_path && <Image image_path={routine.image_path} />}
 
@@ -62,19 +65,17 @@ export default async function RoutinePage({ params }: { params: { id: string } }
 
       <FavouriteArea
         id={routine.id}
-        initialViews={routine.view_count}
         initialFavourites={routine.favourite_count}
       />
 
       <ViewArea routineId={routine.id} initialViews={routine.view_count} />
       <ShareButton routineId={id} />
 
-
       {/* Only show if current user is the owner */}
       <OwnerOnly
         routineId={id}
         imageKey={routine.image_path}
-        ownerId={routine.profiles.id}
+        ownerId={profile.id}
       />
     </main>
   );

@@ -6,7 +6,7 @@ import type { Database } from '@/lib/database.types'
 type Routine = Database['public']['Tables']['routines']['Row']
 
 type Props = {
-  routine: Routine
+  routine: Pick<Routine, 'id' | 'title' | 'description' | 'tags' | 'favourite_count' | 'view_count' | 'user_id' | 'image_path'>
 }
 
 export default function RoutineCard({ routine }: Props) {

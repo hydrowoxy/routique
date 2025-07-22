@@ -1,13 +1,19 @@
-name: PR Build Check
+name: Build Check
 
 on:
+  push:
+    branches: ["*"]
   pull_request:
-    branches:
-      - main
+    branches: ["*"]
 
 jobs:
   build-and-scan:
     runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
 
     steps:
       - name: Checkout code
@@ -18,18 +24,21 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install npm deps (includes pnpm)
+      - name: Install npm deps (installs pnpm)
         run: npm install
+        working-directory: frontend
 
       - name: Install project deps with pnpm
         run: npx pnpm install
+        working-directory: frontend
 
       - name: Build project
         run: npx pnpm build
+        working-directory: frontend
 
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Run Trivy filesystem scan (fail on HIGH or CRITICAL)
-        run: trivy fs . --exit-code 1 --severity HIGH,CRITICAL
+      - name: Run Trivy scan (fail on HIGH or CRITICAL)
+        run: trivy fs frontend --exit-code 1 --severity HIGH,CRITICAL

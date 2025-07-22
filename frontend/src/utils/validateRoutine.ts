@@ -5,7 +5,7 @@ export interface RoutinePayload {
   description: string;
   notes: string;
   tagsRaw: string; // comma-separated string from the textarea
-  imageKey: string;
+  imagePath: string;
   imageFile?: File; // used to validate file size
   products: Product[];
 }

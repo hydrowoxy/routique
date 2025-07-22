@@ -43,7 +43,10 @@ export default function DeleteButton({ routineId, imageKey }: Props) {
                 console.log('[DeleteButton] Attempting to delete image with key:', imageKey);
                 const { error: imageError } = await deleteImage(imageKey);
                 console.log('[DeleteButton] deleteImage result:', imageError);
-                if (imageError) console.warn("[DeleteButton] Image deletion failed:", imageError.message);
+                if (imageError) {
+                    const msg = typeof imageError === "string" ? imageError : imageError.message;
+                    console.warn("[DeleteButton] Image deletion failed:", msg);
+                }
             } else {
                 console.log('[DeleteButton] No imageKey provided, skipping image deletion');
             }
@@ -57,7 +60,9 @@ export default function DeleteButton({ routineId, imageKey }: Props) {
                 router.push('/');
             }
         } catch (err) {
-            console.error('[DeleteButton] Failed to delete routine:', err?.message || err);
+            const msg =
+                err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
+            console.error('[DeleteButton] Failed to delete routine:', msg);
             alert('Failed to delete. See console.');
         } finally {
             setLoading(false);

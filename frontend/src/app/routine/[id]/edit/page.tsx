@@ -1,7 +1,8 @@
 import EditRoutineForm from '@/components/RoutineForm/EditRoutineForm'
 
-export default function EditPage({ params }: { params: { id: string } }) {
-  const id = params.id
+export default async function EditPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const { id } = params;
 
   return (
     <main>

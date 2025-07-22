@@ -1,0 +1,35 @@
+name: PR Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install npm deps (includes pnpm)
+        run: npm install
+
+      - name: Install project deps with pnpm
+        run: npx pnpm install
+
+      - name: Build project
+        run: npx pnpm build
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run Trivy filesystem scan (fail on HIGH or CRITICAL)
+        run: trivy fs . --exit-code 1 --severity HIGH,CRITICAL

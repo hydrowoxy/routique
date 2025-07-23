@@ -9,7 +9,7 @@ export type Json =
 export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  "__InternalSupabase": {
+  __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
@@ -76,6 +76,7 @@ export type Database = {
       }
       routines: {
         Row: {
+          category: string
           created_at: string
           description: string
           favourite_count: number
@@ -89,6 +90,7 @@ export type Database = {
           view_count: number
         }
         Insert: {
+          category?: string
           created_at?: string
           description: string
           favourite_count?: number
@@ -102,6 +104,7 @@ export type Database = {
           view_count?: number
         }
         Update: {
+          category?: string
           created_at?: string
           description?: string
           favourite_count?: number

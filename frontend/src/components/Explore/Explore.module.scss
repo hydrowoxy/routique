@@ -1,11 +1,21 @@
 .heading {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-bottom: 1rem;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12rem;
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
+.tabs button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.activeTab {
+  font-weight: bold;
+  text-decoration: underline;
+}

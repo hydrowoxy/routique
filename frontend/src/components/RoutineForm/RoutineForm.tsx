@@ -10,6 +10,7 @@ import NotesInput from "./NotesInput/NotesInput";
 import TagInput from "./TagInput/TagInput";
 import ProductInput from "./ProductInput/ProductInput";
 import ImageInput from "./ImageInput/ImageInput";
+import CategoryInput from "./CategoryInput/CategoryInput"; 
 import Loading from "../Loading/Loading";
 
 import { useRouter } from "next/navigation";
@@ -26,6 +27,7 @@ export default function RoutineForm() {
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [category, setCategory] = useState(""); 
 
   const [imageKey, setImageKey] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
@@ -46,6 +48,11 @@ export default function RoutineForm() {
     e.preventDefault();
     setErr("");
     setSuccess(false);
+
+    if (!category) {
+      setErr("Please select a category.");
+      return;
+    }
 
     const check = validateRoutine({
       title,
@@ -73,6 +80,7 @@ export default function RoutineForm() {
       notes: notes.trim(),
       tags: cleanedTags,
       products: cleanedProducts,
+      category, 
       view_count: 0,
       favourite_count: 0,
     });
@@ -88,6 +96,7 @@ export default function RoutineForm() {
       setNotes("");
       setTags("");
       setProducts([]);
+      setCategory(""); 
       setImageKey("");
       setPreviewUrl("");
 
@@ -106,6 +115,7 @@ export default function RoutineForm() {
 
       <TitleInput value={title} onChange={setTitle} />
       <DescriptionInput value={description} onChange={setDescription} />
+      <CategoryInput value={category} onChange={setCategory} /> 
 
       <ImageInput
         existingUrl={previewUrl}

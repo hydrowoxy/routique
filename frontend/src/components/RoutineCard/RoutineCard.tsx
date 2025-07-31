@@ -22,7 +22,6 @@ export default function RoutineCard({ routine }: Props) {
         )}
 
         <h2>{routine.title}</h2>
-        {routine.description && <p>{routine.description}</p>}
 
         {routine.category && (
             <p style={{ fontStyle: 'italic' }}>{routine.category}</p>

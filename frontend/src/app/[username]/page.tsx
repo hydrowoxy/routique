@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import RoutineCard from "@/components/RoutineCard/RoutineCard";
+import RoutineGrid from "@/components/RoutineGrid/RoutineGrid"; 
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,7 @@ export default async function UsernamePage(props: {
   const { data: routines, error: routinesError } = await supabase
     .from("routines")
     .select(
-      "id, title, description, image_path, tags, favourite_count, view_count, user_id"
+      "id, title, description, image_path, favourite_count, view_count, user_id, category" 
     )
     .eq("user_id", profile.id);
 
@@ -34,9 +34,7 @@ export default async function UsernamePage(props: {
       <h1>
         {profile.display_name} {profile.username}&apos;s Routines
       </h1>
-      {routines?.map((r) => (
-        <RoutineCard key={r.id} routine={r} />
-      ))}
+      <RoutineGrid routines={routines ?? []} /> 
       {/* todo Render public profile info here */}
     </div>
   );

@@ -6,7 +6,7 @@ import type { Database } from '@/lib/database.types'
 type Routine = Database['public']['Tables']['routines']['Row']
 
 type Props = {
-  routine: Pick<Routine, 'id' | 'title' | 'description' | 'tags' | 'favourite_count' | 'view_count' | 'user_id' | 'image_path'>
+  routine: Pick<Routine, 'id' | 'title' | 'description' | 'favourite_count' | 'view_count' | 'user_id' | 'image_path' | 'category'>
 }
 
 export default function RoutineCard({ routine }: Props) {
@@ -24,12 +24,8 @@ export default function RoutineCard({ routine }: Props) {
         <h2>{routine.title}</h2>
         {routine.description && <p>{routine.description}</p>}
 
-        {routine.tags && routine.tags.length > 0 && (
-          <ul>
-            {routine.tags.map((tag, idx) => (
-              <li key={idx}>{tag}</li>
-            ))}
-          </ul>
+        {routine.category && (
+            <p style={{ fontStyle: 'italic' }}>{routine.category}</p>
         )}
 
         <div>

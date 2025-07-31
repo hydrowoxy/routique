@@ -7,39 +7,37 @@ export const CATEGORY_GROUPS = {
     "Fragrance",
   ],
   "Self-Care & Wellness": [
-    "Morning routine",
-    "Night routine",
-    "Stress relief",
-    "PMS / period care",
+    "Morning",
+    "Night",
+    "Stress",
     "Glow-up",
-    "Bath/shower routine",
+    "Bath/shower",
   ],
   "Health & Hygiene": [
     "Oral care",
-    "Shaving / grooming",
-    "Body care",
-    "Sleep routine",
-    "Post-workout care",
+    "Shaving",
+    "Body",
+    "Sleep",
+    "Post-workout",
   ],
-  "Style & Aesthetic": [
+  "Style": [
     "Outfit",
-    "Fragrance layering",
     "Seasonal",
-    "TikTok trend",
+    "Trend",
   ],
-  "Occasion-Based": [
+  "Occasion": [
     "Pre-date",
     "Travel",
     "Party",
     "Everyday",
   ],
-  "Fun / Themed": [
+  "Special": [
     "Celebrity-inspired",
-    "K-pop idol dupe",
+    "K-beauty",
     "Coquette", 
     "E-girl",
     "Soft goth",
-    "Unique aesthetic",
+    "Unique",
     "Viral",
   ],
 };

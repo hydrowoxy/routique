@@ -80,7 +80,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/`, //todo make this push to username 
         data: {
           username,
           display_name: displayName,
@@ -116,7 +116,7 @@ export default function SignupPage() {
       type: "signup",
       email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/`, // todo make this push to username dynamic
       },
     });
     setLoading(false);

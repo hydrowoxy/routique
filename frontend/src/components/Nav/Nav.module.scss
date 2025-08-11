@@ -1,0 +1,42 @@
+.nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  backdrop-filter: blur(20px) saturate(100%);
+
+  background-color: transparent;
+
+}
+
+.item {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color .18s ease, transform .12s ease;
+
+  &:active { transform: translateY(1px) scale(.98); }
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.avatarPlaceholder {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, #98a3ff 60%, #6b76ff);
+}

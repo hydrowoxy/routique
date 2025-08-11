@@ -29,13 +29,10 @@ export default async function UsernamePage(props: {
     console.error(routinesError);
   }
 
-  return (
-    <div>
-      <h1>
-        {profile.display_name} {profile.username}&apos;s Routines
-      </h1>
-      <RoutineGrid routines={routines ?? []} showUsername={false} /> 
-      {/* todo Render public profile info here */}
-    </div>
-  );
+return (
+  <div>
+    <h1>{profile.display_name}&apos;s Routines</h1>
+    <RoutineGrid routines={routines ?? []} showUsernames={false} />
+  </div>
+);
 }

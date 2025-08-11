@@ -4,14 +4,14 @@ $base-font-size: 12px;
   font-size: $base-font-size;
   line-height: 1.5;
   font-weight: 300;
-  font-family: var(--font-open-sans), sans-serif;
+  font-family: var(--font-onest), sans-serif;
 }
 
 @mixin text-small {
   font-size: $base-font-size * 0.833; // ~10px
   line-height: 1;
   font-weight: 400;
-  font-family: var(--font-open-sans), sans-serif;
+  font-family: var(--font-onest), sans-serif;
 }
 
 
@@ -19,6 +19,6 @@ $base-font-size: 12px;
   font-size: $base-font-size * 1.333; // ~16px
   line-height: 1.5;
   font-weight: 400;
-  font-family: var(--font-outfit), sans-serif;
+  font-family: var(--font-onest), sans-serif;
 }
 

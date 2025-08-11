@@ -1,20 +1,13 @@
 import type { Metadata } from "next";
-import { Open_Sans, Outfit } from "next/font/google";
+import { Onest } from "next/font/google";
 import '@/styles/index.scss';
 import { AuthProvider } from "@/contexts/AuthContext";
 import Nav from "@/components/Nav/Nav";
 
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
+const onest = Onest({
+  variable: "--font-onest",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700"], // adjust weights you actually use
   display: "swap",
 });
 
@@ -29,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${openSans.variable} ${outfit.variable}`}>
+    <html lang="en" className={onest.variable}>
       <body>
         <AuthProvider>
           <Nav />

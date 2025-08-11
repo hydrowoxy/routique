@@ -1,0 +1,68 @@
+@use '@/styles/fonts' as fonts;
+@use '@/styles/variables' as vars;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;               
+  border-radius: 8px;
+  background: var(--background);
+  border: 1px solid var(--outline);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 4 / 3;       
+  object-fit: cover;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.info {
+  padding: 0 clamp(8px, 2.5vw, 10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  h1, h2, h3, h4, h5, h6, p { margin: 0; }
+}
+
+.title {
+  @include fonts.text-body;
+  font-weight: 600;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: clamp(0.85rem, 2.6vw, 1rem);
+}
+
+.category {
+  @include fonts.text-small;
+  color: var(--primary);
+  margin-top: 2px;
+  padding-bottom: 10px;
+  font-size: clamp(0.75rem, 2.3vw, 0.875rem);
+}
+
+.username {
+  @include fonts.text-small;
+  color: var(--secondary);
+  margin-top: 6px;
+  align-self: flex-end;
+  font-size: clamp(0.75rem, 2.3vw, 0.875rem);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

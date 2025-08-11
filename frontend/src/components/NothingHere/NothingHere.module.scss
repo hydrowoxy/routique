@@ -1,0 +1,16 @@
+@use '@/styles/fonts' as fonts;
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px; 
+  text-align: center;
+}
+
+.message {
+  @include fonts.text-title;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+}

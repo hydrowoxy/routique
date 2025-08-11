@@ -1,14 +1,16 @@
-$primary: #0090ff;       
-$secondary: #f996ff;     
-$accent: #ff2097;        
-$background: #f8f9fb;    
-$text: #0f172a;          
-$muted: #94a3b8;         
+$primary: #FF2097;     
+$secondary: #FF70BB; 
+$accent: #FFAEE1;    
+$outline: #E2E2E2;        
+$background: #ffffff;    
+$text: #000000;          
+$muted: #F7F7F7;         
 
 :root {
   --primary: #{$primary};
   --secondary: #{$secondary};
   --accent: #{$accent};
+  --outline: #{$outline};
   --background: #{$background};
   --text: #{$text};
   --muted: #{$muted};

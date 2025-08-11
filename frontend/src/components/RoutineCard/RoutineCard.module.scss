@@ -12,7 +12,7 @@
   width: 100%;               
   border-radius: 8px;
   background: var(--background);
-  border: 1px solid var(--outline);
+  //border: 1px solid var(--outline);
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -20,7 +20,7 @@
 
 .image {
   width: 100%;
-  aspect-ratio: 4 / 3;       
+  aspect-ratio: 3.6 / 3;       
   object-fit: cover;
   background: var(--accent);
   flex-shrink: 0;
@@ -37,7 +37,7 @@
 
 .title {
   @include fonts.text-body;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -48,7 +48,7 @@
 
 .category {
   @include fonts.text-small;
-  color: var(--primary);
+  color: var(--subtext);
   margin-top: 2px;
   padding-bottom: 10px;
   font-size: clamp(0.75rem, 2.3vw, 0.875rem);
@@ -56,8 +56,9 @@
 
 .username {
   @include fonts.text-small;
-  color: var(--secondary);
-  margin-top: 6px;
+  color: var(--subtext);
+  margin-top: 2px;
+  margin-bottom: 5px;
   align-self: flex-end;
   font-size: clamp(0.75rem, 2.3vw, 0.875rem);
   max-width: 100%;

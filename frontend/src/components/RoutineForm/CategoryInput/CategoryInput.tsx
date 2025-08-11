@@ -1,6 +1,6 @@
 "use client";
 
-import { ALL_CATEGORIES } from "@/lib/categories";
+import { CATEGORIES } from "@/lib/categories";
 
 type Props = {
   value: string;
@@ -20,7 +20,7 @@ export default function CategoryInput({ value, onChange }: Props) {
         <option value="" disabled>
           Select a category
         </option>
-        {ALL_CATEGORIES.map((category) => (
+        {CATEGORIES.map((category) => (
           <option key={category} value={category}>
             {category}
           </option>

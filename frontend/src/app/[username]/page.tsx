@@ -34,7 +34,7 @@ export default async function UsernamePage(props: {
       <h1>
         {profile.display_name} {profile.username}&apos;s Routines
       </h1>
-      <RoutineGrid routines={routines ?? []} /> 
+      <RoutineGrid routines={routines ?? []} showUsername={false} /> 
       {/* todo Render public profile info here */}
     </div>
   );

@@ -1,10 +1,10 @@
 'use client';
 
-import styles from './RoutineGrid.module.scss';
-import RoutineCard from '@/components/RoutineCard/RoutineCard';
-import NothingHere from '@/components/NothingHere/NothingHere';
+import styles from "./RoutineGrid.module.scss";
+import RoutineCard from "@/components/RoutineCard/RoutineCard";
+import NothingHere from "@/components/NothingHere/NothingHere";
 
-type RoutineWithProfile = {
+type RoutineForGrid = {
   id: string;
   title: string;
   description: string | null;
@@ -13,7 +13,7 @@ type RoutineWithProfile = {
   view_count: number;
   user_id: string;
   category: string | null;
-  profiles: { username: string | null } | null;
+  profiles?: { username: string | null } | null;
 };
 
 export default function RoutineGrid({
@@ -21,9 +21,9 @@ export default function RoutineGrid({
   showUsername = true,
   usernameOverride,
 }: {
-  routines: RoutineWithProfile[];
-  showUsername?: boolean;            // hide on profile pages
-  usernameOverride?: string | null;  // force a known username if you have it
+  routines: RoutineForGrid[];
+  showUsername?: boolean;
+  usernameOverride?: string | null;
 }) {
   if (!routines.length) return <NothingHere message="Oops! Empty shelf…" />;
 

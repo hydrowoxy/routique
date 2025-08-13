@@ -34,9 +34,12 @@ export default function Nav() {
             <Image className={styles.icon} src="/icons/heart.svg" alt="" width={15} height={15} />
           </Link>
 
+          {/*
+
           <Link href="/search" className={styles.item} aria-label="Search">
             <Image className={styles.icon} src="/icons/search.svg" alt="" width={15} height={15} />
           </Link>
+          */}
 
           <Link href="/create" className={styles.item} aria-label="Create">
             <Image className={styles.icon} src="/icons/create.svg" alt="" width={15} height={15} />

@@ -1,0 +1,63 @@
+@use '@/styles/fonts' as fonts;
+
+.header {
+  position: relative;
+  padding: calc(clamp(18px, 5vw, 28px) + 2vh) clamp(18px, 5vw, 28px) clamp(10px, 3vw, 16px);
+}
+
+.actions {
+  position: static;
+  margin-top: 3vh;
+  display: flex;
+  gap: 10px;
+  padding-bottom: 3vh;
+}
+
+.actionBtn {
+  @include fonts.text-title;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--subtext);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.avatarWrap {
+  margin: clamp(8px, 3vw, 16px) 0 clamp(8px, 2vw, 12px);
+  width: clamp(88px, 20vw, 120px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: black;
+}
+
+.text {
+  @include fonts.text-body;
+  margin-top: 6px;
+  color: var(--text);
+}
+
+.displayName {
+  @include fonts.text-big-title;
+  margin: 0;
+}
+
+.username {
+  @include fonts.text-title;
+  color: var(--subtext);
+}

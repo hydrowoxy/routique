@@ -1,0 +1,37 @@
+@use '@/styles/fonts' as fonts;
+
+.button {
+  @include fonts.text-small-title;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 14px;
+  border: none;
+  border-radius: 12px;
+
+  background-color: #fff;
+  color: var(--text);
+
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.09), 
+    0 4px 6px rgba(0, 0, 0, 0.07);  
+
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 10px 25px rgba(0, 0, 0, 0.11),
+      0 6px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow:
+      0 4px 10px rgba(0, 0, 0, 0.08),
+      0 2px 5px rgba(0, 0, 0, 0.07);
+  }
+}

@@ -1,0 +1,48 @@
+@use '@/styles/fonts' as fonts;
+
+.wrapper {
+  min-height: 100svh;
+  background: var(--background); 
+  position: relative;
+  padding: clamp(14px, 4vw, 22px);
+  display: flex;
+  flex-direction: column;
+}
+
+.center {
+  margin: auto; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.code {
+  @include fonts.text-big-title;
+  font-size: clamp(2.5rem, 9vw, 3.75rem);
+  line-height: 1.1;
+  margin: 0;
+background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.headline {
+  @include fonts.text-title;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; 
+}
+
+.subtext {
+  @include fonts.text-body;
+  color: var(--text);
+  margin: 2px 0 14px;
+}
+
+.linkReset {
+  text-decoration: none; 
+}

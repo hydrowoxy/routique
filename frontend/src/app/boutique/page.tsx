@@ -60,7 +60,7 @@ export default function BoutiquePage() {
       } else {
         const rows = (data ?? []).filter(Boolean);
         const mapped = rows
-          .map((r: { routines: RoutineWithProfile }) => r.routines)
+          .map((r) => r.routines)
           .filter(Boolean) as RoutineWithProfile[];
         setRoutines(mapped);
       }
@@ -72,10 +72,10 @@ export default function BoutiquePage() {
   if (authLoading || fetching) return <Loading />;
   if (err) return <div style={{ padding: 16, color: "red" }}>{err}</div>;
 
-    return (
-    <main>
-        <BoutiqueHeader count={routines.length} />
-        <RoutineGrid routines={routines} showUsernames />
-    </main>
-    );
+return (
+  <main>
+    <BoutiqueHeader count={routines.length} />
+    <RoutineGrid routines={routines} showUsernames />
+  </main>
+);
 }

@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import TitleInput       from "./TitleInput/TitleInput";
 import DescriptionInput from "./DescriptionInput/DescriptionInput";
 import NotesInput       from "./NotesInput/NotesInput";
-import TagInput         from "./TagInput/TagInput";
 import ProductInput     from "./ProductInput/ProductInput";
 import ImageInput       from "./ImageInput/ImageInput";
 import CategoryInput    from "./CategoryInput/CategoryInput"; 
@@ -16,6 +15,10 @@ import Loading          from "../Loading/Loading";
 
 import { validateRoutine } from "@/utils/validateRoutine";
 import { deleteImage }     from "@/utils/deleteImage";
+
+import styles from "./RoutineForm.module.scss";
+import AccentButton from "../AccentButton/AccentButton";
+import Button from "../Button/Button";
 
 type Product = { name: string; links: string[] };
 
@@ -158,14 +161,9 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
   if (authLoading || !authed || loading) return <Loading />;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Edit Routine</h2>
+    <form onSubmit={handleSubmit} className={styles.form}>
       {success && <p style={{ color: "green" }}>Saved. Redirecting…</p>}
       {err && <p style={{ color: "red" }}>{err}</p>}
-
-      <TitleInput       value={title}       onChange={setTitle} />
-      <DescriptionInput value={description} onChange={setDescription} />
-      <CategoryInput    value={category}    onChange={setCategory} /> 
       <ImageInput
         existingUrl={previewUrl}
         onUpload={(newKey) => {
@@ -176,15 +174,22 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
           setPreviewUrl(data?.publicUrl || "");
         }}
       />
+      <TitleInput       value={title}       onChange={setTitle} />
+      <DescriptionInput value={description} onChange={setDescription} />
+      <CategoryInput    value={category}    onChange={setCategory} /> 
+
       <ProductInput products={products} onChange={updateProducts} />
       <NotesInput  value={notes} onChange={setNotes} />
 
-      <button type="submit" disabled={saving || !title.trim() || !imageKey}>
-        {saving ? "Saving…" : "Save Changes"}
-      </button>
-      <button type="button" onClick={handleCancel} disabled={saving}>
-        Cancel
-      </button>
+      <div className={styles.actions}>
+        <AccentButton type="submit" disabled={saving || !title.trim() || !imageKey}>
+          {saving ? "Saving…" : "Save Changes"}
+        </AccentButton>
+
+        <Button type="button" onClick={handleCancel} disabled={saving}>
+          Cancel
+        </Button>
+      </div>
     </form>
   );
 }

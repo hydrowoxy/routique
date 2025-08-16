@@ -1,80 +1,91 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { deleteImage } from '@/utils/deleteImage'; 
-import { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { deleteImage } from "@/utils/deleteImage";
+import { useState } from "react";
 
 type Props = {
-    routineId: string;
-    imageKey?: string | null; 
+  routineId: string;
+  imageKey?: string | null; 
 };
 
+// Turn a public URL into a storage key if needed.
+// Example public URL: /storage/v1/object/public/routines/<KEY>
+function toKey(input?: string | null): string | null {
+  if (!input) return null;
+  try {
+    // If it's already a bare key, nothing to do
+    if (!input.includes("/storage/v1/object")) return input;
+    const url = new URL(input, typeof window !== "undefined" ? window.location.origin : "https://dummy");
+    const path = decodeURIComponent(url.pathname);
+    const marker = "/storage/v1/object/public/routines/";
+    const pos = path.indexOf(marker);
+    if (pos === -1) return input;
+    return path.slice(pos + marker.length);
+  } catch {
+    return input;
+  }
+}
+
 export default function DeleteButton({ routineId, imageKey }: Props) {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-    const handleDelete = async () => {
-        console.log('[DeleteButton] handleDelete called');
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this routine? This action is irreversible."
-        );
-        console.log('[DeleteButton] User confirmed:', confirmed);
-        if (!confirmed) return;
-
-        setLoading(true);
-        console.log('[DeleteButton] setLoading(true)');
-
-        try {
-            console.log('[DeleteButton] Attempting to delete routine with id:', routineId);
-            const { error: deleteError } = await supabase
-                .from('routines')
-                .delete()
-                .eq('id', routineId);
-
-            console.log('[DeleteButton] supabase delete result:', deleteError);
-
-            if (deleteError) {
-                console.error('[DeleteButton] Error deleting routine:', deleteError);
-                throw deleteError;
-            }
-
-            if (imageKey) {
-                console.log('[DeleteButton] Attempting to delete image with key:', imageKey);
-                const { error: imageError } = await deleteImage(imageKey);
-                console.log('[DeleteButton] deleteImage result:', imageError);
-                if (imageError) {
-                    const msg = typeof imageError === "string" ? imageError : imageError.message;
-                    console.warn("[DeleteButton] Image deletion failed:", msg);
-                }
-            } else {
-                console.log('[DeleteButton] No imageKey provided, skipping image deletion');
-            }
-
-            alert("Routine deleted successfully.");
-
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user?.user_metadata?.username) {
-                router.push(`/${user.user_metadata.username}`);
-            } else {
-                router.push('/');
-            }
-        } catch (err) {
-            const msg =
-                err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
-            console.error('[DeleteButton] Failed to delete routine:', msg);
-            alert('Failed to delete. See console.');
-        } finally {
-            setLoading(false);
-            console.log('[DeleteButton] setLoading(false)');
-        }
-    };
-
-    console.log('[DeleteButton] Rendered with props:', { routineId, imageKey, loading });
-
-    return (
-        <button onClick={handleDelete} disabled={loading}>
-            {loading ? 'Deleting...' : 'Delete'}
-        </button>
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this routine? This action is irreversible."
     );
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      // 1) Fetch the latest image_path from DB as source of truth
+      const { data: row, error: fetchErr } = await supabase
+        .from("routines")
+        .select("image_path")
+        .eq("id", routineId)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      // Prefer DB value; fall back to prop
+      const keyFromDb = row?.image_path ?? null;
+      const key = toKey(keyFromDb ?? imageKey ?? null);
+
+      // 2) Delete the routine row
+      const { error: delRowErr } = await supabase
+        .from("routines")
+        .delete()
+        .eq("id", routineId);
+
+      if (delRowErr) throw delRowErr;
+
+      // 3) Best-effort: delete the image
+      if (key) {
+        const { error: delImgErr } = await deleteImage(key);
+        if (delImgErr) {
+          const msg = typeof delImgErr === "string" ? delImgErr : delImgErr.message;
+          console.warn("[DeleteButton] Image deletion failed:", msg);
+        }
+      }
+
+      // 4) Go back to the user’s profile/home
+      const { data: authRes } = await supabase.auth.getUser();
+      const username = authRes?.user?.user_metadata?.username;
+      router.push(username ? `/${username}` : "/");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[DeleteButton] Failed to delete:", msg);
+      alert("Failed to delete. See console for details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button onClick={handleDelete} disabled={loading}>
+      {loading ? "Deleting..." : "Delete"}
+    </button>
+  );
 }

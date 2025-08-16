@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
+import BoutiqueHeader from "@/components/BoutiqueHeader/BoutiqueHeader";
 import RoutineGrid from "@/components/RoutineGrid/RoutineGrid";
 import Loading from "@/components/Loading/Loading";
-
-import BoutiqueHeader from "@/components/BoutiqueHeader/BoutiqueHeader";
 
 type RoutineWithProfile = {
   id: string;
@@ -21,6 +20,18 @@ type RoutineWithProfile = {
   category: string;
   profiles?: { username: string } | null;
 };
+
+type RoutineRow = RoutineWithProfile & {
+  profiles?: { username: string } | { username: string }[] | null;
+};
+
+type FaveRow = {
+  created_at: string;
+  routines: RoutineRow | RoutineRow[] | null;
+};
+
+const asOne = <T,>(val: T | T[] | null | undefined): T | null =>
+  Array.isArray(val) ? (val[0] ?? null) : (val ?? null);
 
 export default function BoutiquePage() {
   const { session, loading: authLoading } = useAuth();
@@ -45,23 +56,30 @@ export default function BoutiquePage() {
         .from("favourites")
         .select(`
           created_at,
-          routines: routine_id (
+          routines(
             id, title, description, image_path,
             favourite_count, view_count, user_id, category,
-            profiles: user_id ( username )
+            profiles:user_id(username)
           )
         `)
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
+        console.error("[favourites query]", error);
         setErr(error.message);
         setRoutines([]);
       } else {
-        const rows = (data ?? []).filter(Boolean);
-        const mapped = rows
-          .map((r) => r.routines)
-          .filter(Boolean) as RoutineWithProfile[];
+        const rows = (data as FaveRow[] | null) ?? [];
+
+        const mapped: RoutineWithProfile[] = rows
+          .map((r) => asOne(r.routines))
+          .filter((rt): rt is NonNullable<typeof rt> => Boolean(rt))
+          .map((rt) => {
+            const profileOne = asOne(rt.profiles);
+            return { ...rt, profiles: profileOne };
+          });
+
         setRoutines(mapped);
       }
 
@@ -72,10 +90,14 @@ export default function BoutiquePage() {
   if (authLoading || fetching) return <Loading />;
   if (err) return <div style={{ padding: 16, color: "red" }}>{err}</div>;
 
-return (
-  <main>
-    <BoutiqueHeader count={routines.length} />
-    <RoutineGrid routines={routines} showUsernames />
-  </main>
-);
+  return (
+    <main>
+      <BoutiqueHeader
+        title="My Boutique"
+        subtitle="A collection of your favourite routines."
+        count={routines.length}
+      />
+      <RoutineGrid routines={routines} showUsernames />
+    </main>
+  );
 }

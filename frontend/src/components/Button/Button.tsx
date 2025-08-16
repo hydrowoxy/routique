@@ -1,17 +1,22 @@
 "use client";
 
+import React from "react";
 import styles from "./Button.module.scss";
 
-type ButtonProps = {
-  children: React.ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset";
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  className?: string;
 };
 
-export default function Button({ children, onClick, type = "button" }: ButtonProps) {
-  return (
-    <button type={type} onClick={onClick} className={styles.button}>
-      {children}
-    </button>
-  );
-}
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, children, ...rest }, ref) => {
+    const classes = [styles.button, className].filter(Boolean).join(" ");
+    return (
+      <button ref={ref} className={classes} {...rest}>
+        {children}
+      </button>
+    );
+  }
+);
+
+Button.displayName = "Button";
+export default Button;

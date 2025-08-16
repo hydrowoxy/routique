@@ -15,8 +15,8 @@
   color: var(--text);
 
   box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.09), 
-    0 4px 6px rgba(0, 0, 0, 0.07);  
+    0 8px 20px rgba(0, 0, 0, 0.09),
+    0 4px 6px rgba(0, 0, 0, 0.07);
 
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.2s ease;
@@ -33,5 +33,20 @@
     box-shadow:
       0 4px 10px rgba(0, 0, 0, 0.08),
       0 2px 5px rgba(0, 0, 0, 0.07);
+  }
+
+  /* disabled state */
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: none;
+    transform: none;
+  }
+
+  &:disabled:hover,
+  &:disabled:active {
+    box-shadow: none;
+    transform: none;
   }
 }

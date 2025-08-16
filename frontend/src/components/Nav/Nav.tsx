@@ -30,7 +30,7 @@ export default function Nav() {
             <Image className={styles.icon} src="/icons/home.svg" alt="" width={15} height={15} />
           </Link>
 
-          <Link href="/favourites" className={styles.item} aria-label="Favourites">
+          <Link href="/boutique" className={styles.item} aria-label="Boutique">
             <Image className={styles.icon} src="/icons/heart.svg" alt="" width={15} height={15} />
           </Link>
 

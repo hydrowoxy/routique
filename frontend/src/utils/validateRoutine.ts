@@ -4,7 +4,6 @@ export interface RoutinePayload {
   title: string;
   description: string;
   notes: string;
-  tagsRaw: string; // comma-separated string from the textarea
   imagePath: string;
   imageFile?: File; // used to validate file size
   products: Product[];
@@ -15,7 +14,6 @@ export interface ValidationResult {
   msg?: string;
   data?: {
     cleanedProducts: Product[];
-    cleanedTags: string[];
   };
 }
 
@@ -23,9 +21,6 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
   const MAX_TITLE_LEN = 100;
   const MAX_DESC_LEN = 500;
   const MAX_NOTES_LEN = 2000;
-
-  const MAX_TAGS = 5;
-  const MAX_TAG_LEN = 30;
 
   const MAX_PRODUCTS = 10;
   const MAX_LINKS = 3;
@@ -37,7 +32,6 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
   if (!input.title.trim()) return { ok: false, msg: "Title is required." };
   if (!input.description.trim()) return { ok: false, msg: "Description is required." };
   if (!input.notes.trim()) return { ok: false, msg: "Notes are required." };
-  if (!input.tagsRaw.trim()) return { ok: false, msg: "Tags are required." };
   if (!input.imagePath) return { ok: false, msg: "Please upload an image." };
 
   // --- Length limits ---
@@ -49,27 +43,6 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
   }
   if (input.notes.length > MAX_NOTES_LEN) {
     return { ok: false, msg: `Notes are too long (max ${MAX_NOTES_LEN} characters).` };
-  }
-
-  // --- Tag processing ---
-  const tagList = input.tagsRaw
-    .split(",")
-    .map(t => t.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (tagList.length > MAX_TAGS) {
-    return { ok: false, msg: `Too many tags (max ${MAX_TAGS}).` };
-  }
-
-  const tagSet = new Set(tagList);
-  if (tagSet.size !== tagList.length) {
-    return { ok: false, msg: "Tags must be unique." };
-  }
-
-  for (const tag of tagList) {
-    if (tag.length > MAX_TAG_LEN) {
-      return { ok: false, msg: `Tag "${tag}" is too long (max ${MAX_TAG_LEN} characters).` };
-    }
   }
 
   // --- Image size check ---
@@ -130,7 +103,6 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
     ok: true,
     data: {
       cleanedProducts,
-      cleanedTags: tagList,
     },
   };
 }

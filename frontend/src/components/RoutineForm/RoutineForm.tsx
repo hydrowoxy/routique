@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import TitleInput from "./TitleInput/TitleInput";
 import DescriptionInput from "./DescriptionInput/DescriptionInput";
 import NotesInput from "./NotesInput/NotesInput";
-import TagInput from "./TagInput/TagInput";
 import ProductInput from "./ProductInput/ProductInput";
 import ImageInput from "./ImageInput/ImageInput";
 import CategoryInput from "./CategoryInput/CategoryInput"; 
@@ -15,6 +14,9 @@ import Loading from "../Loading/Loading";
 
 import { useRouter } from "next/navigation";
 import { validateRoutine } from "@/utils/validateRoutine";
+
+import styles from "./RoutineForm.module.scss";
+import AccentButton from "../AccentButton/AccentButton";
 
 type Product = { name: string; links: string[] };
 
@@ -25,7 +27,6 @@ export default function RoutineForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
-  const [tags, setTags] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState(""); 
 
@@ -58,7 +59,6 @@ export default function RoutineForm() {
       title,
       description,
       notes,
-      tagsRaw: tags,
       imagePath: imageKey,
       products,
     });
@@ -68,7 +68,7 @@ export default function RoutineForm() {
       return;
     }
 
-    const { cleanedProducts, cleanedTags } = check.data!;
+    const { cleanedProducts } = check.data!;
     setSaving(true);
 
     const { error } = await supabase.from("routines").insert({
@@ -78,7 +78,6 @@ export default function RoutineForm() {
       description: description.trim(),
       image_path: imageKey,
       notes: notes.trim(),
-      tags: cleanedTags,
       products: cleanedProducts,
       category, 
       view_count: 0,
@@ -94,7 +93,6 @@ export default function RoutineForm() {
       setTitle("");
       setDescription("");
       setNotes("");
-      setTags("");
       setProducts([]);
       setCategory(""); 
       setImageKey("");
@@ -108,14 +106,9 @@ export default function RoutineForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create Routine</h2>
+    <form onSubmit={handleSubmit} className={styles.form}>
       {success && <p style={{ color: "green" }}>Routine created. Redirecting…</p>}
       {err && <p style={{ color: "red" }}>{err}</p>}
-
-      <TitleInput value={title} onChange={setTitle} />
-      <DescriptionInput value={description} onChange={setDescription} />
-      <CategoryInput value={category} onChange={setCategory} /> 
 
       <ImageInput
         existingUrl={previewUrl}
@@ -128,13 +121,18 @@ export default function RoutineForm() {
         }}
       />
 
+      <TitleInput value={title} onChange={setTitle} />
+      <DescriptionInput value={description} onChange={setDescription} />
+      <CategoryInput value={category} onChange={setCategory} /> 
+
+
+
       <ProductInput products={products} onChange={setProducts} />
       <NotesInput value={notes} onChange={setNotes} />
-      <TagInput value={tags} onChange={setTags} />
 
-      <button type="submit" disabled={saving || !title.trim() || !imageKey}>
+      <AccentButton type="submit" disabled={saving || !title.trim() || !imageKey}>
         {saving ? "Saving…" : "Create Routine"}
-      </button>
+      </AccentButton>
     </form>
   );
 }

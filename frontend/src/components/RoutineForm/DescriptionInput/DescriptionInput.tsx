@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { ChangeEvent } from 'react';
+import Input from "@/components/Input/Input";
+import styles from "./DescriptionInput.module.scss";
 
 type Props = {
   value: string;
@@ -10,11 +11,16 @@ type Props = {
 
 export default function DescriptionInput({ value, onChange, disabled = false }: Props) {
   return (
-    <textarea
-      placeholder="Description"
-      value={value}
-      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)}
-      disabled={disabled}
-    />
+    <div className={styles.wrapper}>
+      <label className={styles.label}>Description</label>
+      <Input
+        textarea
+        rows={5}
+        value={value}
+        onChange={onChange}
+        placeholder="Routine Description"
+        disabled={disabled}
+      />
+    </div>
   );
 }

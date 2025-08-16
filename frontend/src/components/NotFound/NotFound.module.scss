@@ -30,9 +30,8 @@ background: linear-gradient(90deg, var(--primary), var(--secondary));
 
 .headline {
   @include fonts.text-title;
-  font-weight: 800;
   margin: 0;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  background: black;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent; 
 }

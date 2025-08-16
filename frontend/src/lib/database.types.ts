@@ -84,7 +84,6 @@ export type Database = {
           image_path: string
           notes: string | null
           products: Json
-          tags: string[]
           title: string
           user_id: string
           view_count: number
@@ -98,7 +97,6 @@ export type Database = {
           image_path: string
           notes?: string | null
           products: Json
-          tags?: string[]
           title: string
           user_id: string
           view_count?: number
@@ -112,7 +110,6 @@ export type Database = {
           image_path?: string
           notes?: string | null
           products?: Json
-          tags?: string[]
           title?: string
           user_id?: string
           view_count?: number

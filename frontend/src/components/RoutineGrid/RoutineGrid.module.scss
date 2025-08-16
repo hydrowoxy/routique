@@ -5,4 +5,5 @@
   /* Cards scale but never below ~150px; auto wraps to 1 column on 320px */
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   justify-content: center;
+  padding-bottom: 10vh;
 }

@@ -4,12 +4,15 @@ import { useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { supabase } from "@/lib/supabase";
 import { deleteImage } from "@/utils/deleteImage";
+import styles from "./ImageInput.module.scss";
 
 type Props = {
   onUpload: (key: string) => void;
   existingUrl?: string | null;
   disabled?: boolean;
   maxSize?: number;
+  /** Optional: override box size, e.g. "140px" */
+  sizePx?: number;
 };
 
 const SIZE_PX = 512;
@@ -25,9 +28,17 @@ const processImage = (file: File): Promise<Blob> =>
       const canvas = document.createElement("canvas");
       canvas.width = SIZE_PX;
       canvas.height = SIZE_PX;
-      canvas
-        .getContext("2d")!
-        .drawImage(img, sx, sy, side, side, 0, 0, SIZE_PX, SIZE_PX);
+      canvas.getContext("2d")!.drawImage(
+        img,
+        sx,
+        sy,
+        side,
+        side,
+        0,
+        0,
+        SIZE_PX,
+        SIZE_PX
+      );
 
       canvas.toBlob(
         (blob) => (blob ? resolve(blob) : reject("Canvas toBlob failed")),
@@ -44,6 +55,7 @@ export default function ImageInput({
   existingUrl = null,
   disabled = false,
   maxSize = 10 * 1024 * 1024,
+  sizePx,
 }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(existingUrl ?? "");
@@ -75,12 +87,6 @@ export default function ImageInput({
     setError("");
     setUploading(true);
 
-    console.log("[ImageInput] selected:", {
-      name: raw.name,
-      size: raw.size,
-      type: raw.type,
-    });
-
     try {
       const blob = await processImage(raw);
       const inferredType = raw.type?.startsWith("image/")
@@ -89,11 +95,7 @@ export default function ImageInput({
       const fileKey = `${uuid()}.jpg`;
       const previousKey = currentKey;
 
-      console.log("[ImageInput] uploading new file:", fileKey);
-      console.log("[ImageInput] previousKey:", previousKey);
-      console.log("[ImageInput] originalKeyRef:", originalKeyRef.current);
-
-      const { error: upErr, data: upRes } = await supabase.storage
+      const { error: upErr } = await supabase.storage
         .from("routines")
         .upload(fileKey, blob, {
           cacheControl: "3600",
@@ -101,32 +103,21 @@ export default function ImageInput({
           upsert: false,
         });
 
-      if (upErr) {
-        console.error("[ImageInput] upload error:", upErr.message);
-        throw upErr;
-      }
-      console.log("[ImageInput] upload success:", upRes);
+      if (upErr) throw upErr;
 
       if (
         previousKey &&
         previousKey !== fileKey &&
         previousKey !== originalKeyRef.current
       ) {
-        console.log("[ImageInput] deleting previousKey:", previousKey);
         const { error: delErr } = await deleteImage(previousKey);
         if (delErr) {
-          const msg = typeof delErr === "string" ? delErr : delErr.message;
-          console.warn("[ImageInput] deleteImage error:", msg);
-        } else {
-          console.log("[ImageInput] deleteImage success for:", previousKey);
+          // non-fatal
+          console.warn("[ImageInput] deleteImage error:", delErr);
         }
-      } else {
-        console.log("[ImageInput] skipping delete. Conditions not met.");
       }
 
       const { data } = supabase.storage.from("routines").getPublicUrl(fileKey);
-      console.log("[ImageInput] public URL:", data?.publicUrl);
-
       setCurrentKey(fileKey);
       setPreview(data?.publicUrl ?? "");
       onUpload(fileKey);
@@ -137,7 +128,6 @@ export default function ImageInput({
           : typeof err === "string"
           ? err
           : "Upload failed";
-      console.error("[ImageInput] upload failed:", msg);
       setError(msg);
     } finally {
       setUploading(false);
@@ -145,49 +135,49 @@ export default function ImageInput({
   };
 
   const remove = async () => {
-    console.log("[ImageInput] remove clicked");
     if (currentKey && currentKey !== originalKeyRef.current) {
-      console.log("[ImageInput] attempting to delete:", currentKey);
       const { error: delErr } = await deleteImage(currentKey);
-        if (delErr) {
-          const msg = typeof delErr === "string" ? delErr : delErr.message;
-          console.warn("[ImageInput] deleteImage error:", msg);
-        } else {
-          console.log("[ImageInput] deleteImage success for:", currentKey);
-        }
-    } else {
-      console.log(
-        "[ImageInput] skipping delete on remove. Conditions not met."
-      );
+      if (delErr) console.warn("[ImageInput] deleteImage error:", delErr);
     }
-
     setPreview("");
     setCurrentKey(null);
     onUpload("");
   };
 
   return (
-    <div>
-      {preview ? (
-        <div>
-          <img src={preview} alt="preview" style={{ maxWidth: 200 }} />
-          <button
-            type="button"
-            onClick={remove}
-            disabled={disabled || uploading}
-          >
-            Remove
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={pickFile}
-          disabled={disabled || uploading}
-        >
-          {uploading ? "Uploading…" : "Choose image"}
-        </button>
-      )}
+    <div
+      className={styles.wrapper}
+      style={sizePx ? ({ ["--image-input-size" as string]: `${sizePx}px` } as React.CSSProperties) : undefined}
+    >
+      <div
+        className={styles.box}
+        role="button"
+        aria-label="Choose image"
+        onClick={!disabled && !uploading ? pickFile : undefined}
+      >
+        {!preview ? (
+          <>
+            <img className={styles.icon} src="/icons/camera.svg" alt="" />
+            {uploading && (
+              <span style={{ position: "absolute", bottom: 8, fontSize: 12 }}>
+                Uploading…
+              </span>
+            )}
+          </>
+        ) : (
+          <>
+            <img className={styles.preview} src={preview} alt="Routine" />
+            <button
+              type="button"
+              className={styles.remove}
+              onClick={remove}
+              disabled={disabled || uploading}
+            >
+              remove
+            </button>
+          </>
+        )}
+      </div>
 
       <input
         ref={fileInput}
@@ -197,7 +187,7 @@ export default function ImageInput({
         style={{ display: "none" }}
       />
 
-      {error && <p style={{ color: "red", fontSize: "0.85rem" }}>{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
     </div>
   );
 }

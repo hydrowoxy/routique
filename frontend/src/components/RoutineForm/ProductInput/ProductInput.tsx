@@ -1,9 +1,12 @@
 "use client";
 
-type Product = {
-  name: string;
-  links: string[];
-};
+import { useEffect } from "react";
+import Input from "@/components/Input/Input";
+import AccentButton from "@/components/AccentButton/AccentButton";
+import Button from "@/components/Button/Button";
+import styles from "./ProductInput.module.scss";
+
+type Product = { name: string; links: string[] };
 
 type Props = {
   products: Product[];
@@ -11,80 +14,73 @@ type Props = {
 };
 
 export default function ProductInput({ products, onChange }: Props) {
-  const addProduct = () => {
-    onChange([...products, { name: '', links: [''] }]);
-  };
-
-  const updateProduct = (index: number, updated: Product) => {
-    const isEmpty =
-      !updated.name.trim() && updated.links.every((l) => !l.trim());
-
-    if (isEmpty) {
-      removeProduct(index);
-    } else {
-      const newList = [...products];
-      newList[index] = updated;
-      onChange(newList);
+  // Ensure at least one row exists
+  useEffect(() => {
+    if (!products || products.length === 0) {
+      onChange([{ name: "", links: [""] }]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const addProduct = () =>
+    onChange([...(products ?? []), { name: "", links: [""] }]);
+
+  const removeProduct = (i: number) =>
+    onChange(products.filter((_, idx) => idx !== i));
+
+  const setName = (i: number, v: string) => {
+    const next = [...products];
+    next[i] = { ...next[i], name: v };
+    onChange(next);
   };
 
-  const updateLink = (prodIndex: number, linkIndex: number, newVal: string) => {
-    const product = products[prodIndex];
-    const newLinks = [...product.links];
-    newLinks[linkIndex] = newVal;
-
-    // Remove empty links (but only if more than 1 exists)
-    const cleanedLinks =
-      newLinks.length > 1 ? newLinks.filter((l) => l.trim()) : newLinks;
-
-    updateProduct(prodIndex, { ...product, links: cleanedLinks });
-  };
-
-  const removeProduct = (index: number) => {
-    const newList = products.filter((_, i) => i !== index);
-    onChange(newList);
+  const setLink = (i: number, v: string) => {
+    const next = [...products];
+    const links = [...(next[i].links ?? [])];
+    links[0] = v;
+    next[i] = { ...next[i], links };
+    onChange(next);
   };
 
   return (
-    <div>
-      {products.map((product, i) => (
-        <div key={i}>
-          <input
-            type="text"
-            placeholder="Product name"
-            value={product.name}
-            onChange={(e) =>
-              updateProduct(i, { ...product, name: e.target.value })
-            }
-          />
-          {product.links.map((link, j) => (
-            <input
-              key={j}
-              type="text"
-              placeholder="Product link"
-              value={link}
-              onChange={(e) => updateLink(i, j, e.target.value)}
-            />
-          ))}
-          <button
-            type="button"
-            onClick={() =>
-              updateProduct(i, {
-                ...product,
-                links: [...product.links, ''],
-              })
-            }
-          >
-            + Link
-          </button>
-          <button type="button" onClick={() => removeProduct(i)}>
-            Remove Product
-          </button>
-        </div>
-      ))}
-      <button type="button" onClick={addProduct}>
-        + Product
-      </button>
-    </div>
+    <section className={styles.wrapper}>
+      <h3 className={styles.title}>Products</h3>
+
+      <div className={styles.head}>
+        <div className={styles.headCell}>Name</div>
+        <div className={styles.headCell}>Link</div>
+      </div>
+
+      {(products?.length ? products : [{ name: "", links: [""] }]).map(
+        (p, i) => (
+          <div key={i} className={styles.rowBlock}>
+            <div className={styles.row}>
+              <Input
+                value={p.name}
+                onChange={(v) => setName(i, v)}
+                placeholder="Product Name"
+              />
+              <Input
+                value={p.links?.[0] ?? ""}
+                onChange={(v) => setLink(i, v)}
+                placeholder="Link"
+              />
+            </div>
+
+            <div className={styles.rowActions}>
+              <Button type="button" onClick={() => removeProduct(i)}>
+                - remove product
+              </Button>
+            </div>
+          </div>
+        )
+      )}
+
+      <div className={styles.actions}>
+        <AccentButton type="button" onClick={addProduct}>
+          + add product
+        </AccentButton>
+      </div>
+    </section>
   );
 }

@@ -32,7 +32,6 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
   const [title,       setTitle]       = useState("");
   const [description, setDescription] = useState("");
   const [notes,       setNotes]       = useState("");
-  const [tags,        setTags]        = useState("");
   const [products,    setProducts]    = useState<Product[]>([]);
   const [category,    setCategory]    = useState(""); 
   const [imageKey,    setImageKey]    = useState("");
@@ -71,7 +70,6 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
       setTitle(data.title ?? "");
       setDescription(data.description ?? "");
       setNotes(data.notes ?? "");
-      setTags((data.tags || []).join(", "));
       setProducts(
         (data.products || []).map((p: Product) => ({
           name: p.name ?? "",
@@ -121,7 +119,6 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
       title,
       description,
       notes,
-      tagsRaw: tags,
       imagePath: imageKey, 
       products,
     });
@@ -131,7 +128,7 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
       return setErr(check.msg!);
     }
 
-    const { cleanedProducts, cleanedTags } = check.data!;
+    const { cleanedProducts } = check.data!;
     setSaving(true);
 
     const { error } = await supabase
@@ -141,7 +138,6 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
         description: description.trim(),
         image_path: imageKey,
         notes: notes.trim(),
-        tags: cleanedTags,
         products: cleanedProducts,
         category, 
       })
@@ -182,7 +178,6 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
       />
       <ProductInput products={products} onChange={updateProducts} />
       <NotesInput  value={notes} onChange={setNotes} />
-      <TagInput    value={tags}  onChange={setTags} />
 
       <button type="submit" disabled={saving || !title.trim() || !imageKey}>
         {saving ? "Saving…" : "Save Changes"}

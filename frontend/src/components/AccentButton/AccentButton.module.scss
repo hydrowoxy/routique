@@ -1,0 +1,28 @@
+@use '@/styles/fonts' as fonts;
+
+.button {
+  @include fonts.text-small-title;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 14px;
+  border: none;
+  border-radius: 12px;
+
+  background-color: var(--primary);
+  color: white;
+
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--primary) 90%, white 10%);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}

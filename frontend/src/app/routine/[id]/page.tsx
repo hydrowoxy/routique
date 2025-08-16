@@ -5,7 +5,6 @@ import Header from "@/components/RoutinePage/Header/Header";
 import Image from "@/components/RoutinePage/Image/Image";
 import Notes from "@/components/RoutinePage/Notes/Notes";
 import Products from "@/components/RoutinePage/Products/Products";
-import Tags from "@/components/RoutinePage/Tags/Tags";
 import FavouriteArea from "@/components/RoutinePage/FavouriteArea/FavouriteArea";
 import ViewArea from "../../../components/RoutinePage/ViewArea/ViewArea";
 import ShareButton from "@/components/RoutinePage/ShareButton/ShareButton";
@@ -23,7 +22,7 @@ export default async function RoutinePage(props: {
     .from("routines")
     .select(
       `id, title, description, image_path,
-             tags, favourite_count, view_count, notes,
+             favourite_count, view_count, notes,
              products,
              profiles: user_id ( id, username, display_name )`
     )
@@ -57,10 +56,6 @@ export default async function RoutinePage(props: {
 
       {Array.isArray(routine.products) && routine.products.length > 0 && (
         <Products products={routine.products} />
-      )}
-
-      {Array.isArray(routine.tags) && routine.tags.length > 0 && (
-        <Tags tags={routine.tags} />
       )}
 
       <FavouriteArea

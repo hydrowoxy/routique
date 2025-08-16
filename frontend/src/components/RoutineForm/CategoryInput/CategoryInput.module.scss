@@ -1,0 +1,59 @@
+@use "@/styles/fonts" as fonts;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+
+  &:focus-within::after {
+    transform: translateY(-50%) rotate(-90deg); /* turns V into > */
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    transform: translateY(-50%); /* V (down) */
+    pointer-events: none;
+    transition: transform .18s ease;
+
+    background-color: var(--subtext);
+
+    -webkit-mask: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none'>\
+  <path d='M2 4 L6 8 L10 4' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/>\
+</svg>") no-repeat center / contain;
+    mask: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none'>\
+  <path d='M2 4 L6 8 L10 4' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/>\
+</svg>") no-repeat center / contain;
+  }
+}
+
+.select {
+  @include fonts.text-body; 
+  
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 44px;
+  border: none;
+  border-radius: 12px;
+  background: var(--muted);
+
+  color: var(--subtext); 
+  outline: none;
+  cursor: pointer;
+
+}

@@ -26,3 +26,11 @@
     transform: translateY(0);
   }
 }
+
+.accent:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
+}
+

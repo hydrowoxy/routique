@@ -1,17 +1,22 @@
 "use client";
 
+import React from "react";
 import styles from "./AccentButton.module.scss";
 
-type ButtonProps = {
-  children: React.ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset";
+export type AccentButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  className?: string;
 };
 
-export default function AccentButton({ children, onClick, type = "button" }: ButtonProps) {
-  return (
-    <button type={type} onClick={onClick} className={styles.button}>
-      {children}
-    </button>
-  );
-}
+const AccentButton = React.forwardRef<HTMLButtonElement, AccentButtonProps>(
+  ({ className, children, ...rest }, ref) => {
+    const classes = [styles.button, className].filter(Boolean).join(" ");
+    return (
+      <button ref={ref} className={classes} {...rest}>
+        {children}
+      </button>
+    );
+  }
+);
+
+AccentButton.displayName = "AccentButton";
+export default AccentButton;

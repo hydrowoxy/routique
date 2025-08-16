@@ -1,0 +1,36 @@
+@use "@/styles/fonts" as fonts;
+
+.header {
+  padding: calc(clamp(18px, 5vw, 28px) + 3vh) clamp(18px, 5vw, 28px) clamp(10px, 3vw, 16px) ;
+  padding-bottom: 20px;
+
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  @include fonts.text-big-title;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.subtitle {
+  @include fonts.text-title;      
+  color: var(--subtext);
+  margin: 0;
+}
+
+.count {
+  @include fonts.text-small;
+  color: var(--subtext);
+  white-space: nowrap;
+}

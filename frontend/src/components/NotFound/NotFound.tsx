@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Button from "@/components/Button/Button";
+import AccentButton from "@/components/AccentButton/AccentButton";
 import styles from "./NotFound.module.scss";
 
 export default function NotFound() {
@@ -12,7 +12,7 @@ export default function NotFound() {
         <p className={styles.subtext}>Let’s take you back somewhere cute.</p>
 
         <Link href="/" className={styles.linkReset}>
-          <Button>Return to home</Button>
+          <AccentButton>Return to home</AccentButton>
         </Link>
       </section>
     </main>

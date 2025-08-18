@@ -1,0 +1,65 @@
+@use "@/styles/fonts" as fonts;
+
+.products {
+  display: grid;
+  row-gap: .5vh;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;        
+  margin: 0;
+  color: var(--text);
+}
+
+.grid {
+  display: grid;
+  row-gap: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr minmax(140px, 42%);
+  align-items: center;
+  column-gap: clamp(16px, 4vw, 28px);
+  min-width: 0; 
+  padding: 1px 0;
+}
+
+.headerRow .th {
+  @include fonts.text-small-title;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.name {
+  @include fonts.text-body;
+  color: var(--text);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.links {
+  min-width: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+  justify-self: start;
+}
+
+.link {
+  @include fonts.text-body;
+  color: var(--primary);   
+  text-decoration: underline;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.muted {
+  @include fonts.text-body;
+  color: var(--subtext);
+}

@@ -1,0 +1,28 @@
+@use '@/styles/fonts' as fonts;
+
+.page {
+  margin: 0 auto;
+  max-width: 720px;
+
+  padding: clamp(18px, 5vw, 28px) clamp(16px, 5vw, 24px);
+
+  display: grid;
+  padding-bottom: 10vh;
+  padding-top: 5vh;
+}
+
+.sectionGap {
+  margin-top: 3vh;
+}
+
+.description{
+  @include fonts.text-body;
+}
+
+.title{
+  @include fonts.text-title;
+  font-weight: 800;        
+  margin: 0;
+  color: var(--text);
+  padding-bottom: 1vh;
+}

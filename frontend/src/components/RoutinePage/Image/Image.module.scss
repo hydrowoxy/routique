@@ -1,0 +1,25 @@
+.wrap {
+  position: relative;
+  width: 100%;
+  height: clamp(180px, 52vw, 320px);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--muted);
+}
+
+.img {
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.thumb {
+  position: relative;
+  width: clamp(150px, 22vw, 96px);
+  height: clamp(150px, 22vw, 96px);
+  border-radius: 12px;         
+  overflow: hidden;
+  background: var(--muted);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--text) 8%, transparent);
+  flex: 0 0 auto;             
+}

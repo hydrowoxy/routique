@@ -1,13 +1,14 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { deleteImage } from "@/utils/deleteImage";
-import { useState } from "react";
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { deleteImage } from '@/utils/deleteImage';
+import { useState } from 'react';
+import Button from '@/components/Button/Button';
 
 type Props = {
   routineId: string;
-  imageKey?: string | null; 
+  imageKey?: string | null;
 };
 
 // Turn a public URL into a storage key if needed.
@@ -15,11 +16,10 @@ type Props = {
 function toKey(input?: string | null): string | null {
   if (!input) return null;
   try {
-    // If it's already a bare key, nothing to do
-    if (!input.includes("/storage/v1/object")) return input;
-    const url = new URL(input, typeof window !== "undefined" ? window.location.origin : "https://dummy");
+    if (!input.includes('/storage/v1/object')) return input; // already a key
+    const url = new URL(input, typeof window !== 'undefined' ? window.location.origin : 'https://dummy');
     const path = decodeURIComponent(url.pathname);
-    const marker = "/storage/v1/object/public/routines/";
+    const marker = '/storage/v1/object/public/routines/';
     const pos = path.indexOf(marker);
     if (pos === -1) return input;
     return path.slice(pos + marker.length);
@@ -34,58 +34,52 @@ export default function DeleteButton({ routineId, imageKey }: Props) {
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this routine? This action is irreversible."
+      'Are you sure you want to delete this routine? This action is irreversible.'
     );
     if (!confirmed) return;
 
     setLoading(true);
     try {
-      // 1) Fetch the latest image_path from DB as source of truth
+      // 1) Fetch latest image_path
       const { data: row, error: fetchErr } = await supabase
-        .from("routines")
-        .select("image_path")
-        .eq("id", routineId)
+        .from('routines')
+        .select('image_path')
+        .eq('id', routineId)
         .single();
-
       if (fetchErr) throw fetchErr;
 
-      // Prefer DB value; fall back to prop
       const keyFromDb = row?.image_path ?? null;
       const key = toKey(keyFromDb ?? imageKey ?? null);
 
-      // 2) Delete the routine row
-      const { error: delRowErr } = await supabase
-        .from("routines")
-        .delete()
-        .eq("id", routineId);
-
+      // 2) Delete routine row
+      const { error: delRowErr } = await supabase.from('routines').delete().eq('id', routineId);
       if (delRowErr) throw delRowErr;
 
-      // 3) Best-effort: delete the image
+      // 3) Best-effort: delete image
       if (key) {
         const { error: delImgErr } = await deleteImage(key);
         if (delImgErr) {
-          const msg = typeof delImgErr === "string" ? delImgErr : delImgErr.message;
-          console.warn("[DeleteButton] Image deletion failed:", msg);
+          const msg = typeof delImgErr === 'string' ? delImgErr : delImgErr.message;
+          console.warn('[DeleteButton] Image deletion failed:', msg);
         }
       }
 
-      // 4) Go back to the user’s profile/home
+      // 4) Redirect to profile/home
       const { data: authRes } = await supabase.auth.getUser();
       const username = authRes?.user?.user_metadata?.username;
-      router.push(username ? `/${username}` : "/");
+      router.push(username ? `/${username}` : '/');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[DeleteButton] Failed to delete:", msg);
-      alert("Failed to delete. See console for details.");
+      console.error('[DeleteButton] Failed to delete:', msg);
+      alert('Failed to delete. See console for details.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <button onClick={handleDelete} disabled={loading}>
-      {loading ? "Deleting..." : "Delete"}
-    </button>
+    <Button type="button" onClick={handleDelete} disabled={loading}>
+      {loading ? 'Deleting...' : 'Delete'}
+    </Button>
   );
 }

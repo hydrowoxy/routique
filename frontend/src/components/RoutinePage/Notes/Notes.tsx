@@ -1,9 +1,11 @@
+import styles from "./Notes.module.scss";
+
 export default function Notes({ notes }: { notes: string | null }) {
-  if (!notes) return null
+  if (!notes) return null;
   return (
-    <>
-      <h2>Notes</h2>
-      <p>{notes}</p>
-    </>
-  )
+    <section className={styles.notes}>
+      <div className={styles.title}>Notes</div>
+      <p className={styles.box}>{notes}</p>
+    </section>
+  );
 }

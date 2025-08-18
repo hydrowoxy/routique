@@ -7,8 +7,10 @@ import Notes from "@/components/RoutinePage/Notes/Notes";
 import Products from "@/components/RoutinePage/Products/Products";
 import FavouriteArea from "@/components/RoutinePage/FavouriteArea/FavouriteArea";
 import ViewArea from "../../../components/RoutinePage/ViewArea/ViewArea";
-import ShareButton from "@/components/RoutinePage/ShareButton/ShareButton";
 import OwnerOnly from "@/components/RoutinePage/OwnerOnly/OwnerOnly";
+
+import styles from "@/components/RoutinePage/RoutinePage.module.scss";
+
 
 export const dynamic = "force-dynamic";
 
@@ -41,37 +43,36 @@ export default async function RoutinePage(props: {
     display_name: string | null;
   };
 
-  return (
-    <main>
+    return (
+    <main className={styles.page}>
+      {/* everything else stays the same for now */}
+      {routine.image_path && <Image image_path={routine.image_path} />}
+
       <Header
         title={routine.title}
         profile={Array.isArray(routine.profiles) ? routine.profiles[0] : routine.profiles}
       />
 
-      {routine.image_path && <Image image_path={routine.image_path} />}
+      <ViewArea routineId={routine.id} initialViews={routine.view_count} />
+      <FavouriteArea id={routine.id} initialFavourites={routine.favourite_count} />
 
-      <p>{routine.description}</p>
-
-      {routine.notes && <Notes notes={routine.notes} />}
-
+      <p className={styles.title}>Description</p>
+      <p className={styles.description}>{routine.description}</p>
+      
       {Array.isArray(routine.products) && routine.products.length > 0 && (
-        <Products products={routine.products} />
+        <section className={styles.sectionGap}>
+          <Products products={routine.products} />
+        </section>
       )}
 
-      <FavouriteArea
-        id={routine.id}
-        initialFavourites={routine.favourite_count}
-      />
+      {routine.notes && (
+        <section className={styles.sectionGap}>
+          <Notes notes={routine.notes} />
+        </section>
+      )}
 
-      <ViewArea routineId={routine.id} initialViews={routine.view_count} />
-      <ShareButton routineId={id} />
+      <OwnerOnly routineId={id} imageKey={routine.image_path} ownerId={profile.id} />
 
-      {/* Only show if current user is the owner */}
-      <OwnerOnly
-        routineId={id}
-        imageKey={routine.image_path}
-        ownerId={profile.id}
-      />
     </main>
   );
 }

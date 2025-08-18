@@ -48,3 +48,14 @@
   border-radius: 9999px;
   background: radial-gradient(circle at 30% 30%, black);
 }
+
+.avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px; /* circle */
+  object-fit: cover;
+  display: block;
+  background: var(--muted); /* quick fallback while loading */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}

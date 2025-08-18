@@ -1,0 +1,63 @@
+@use "@/styles/fonts" as fonts;
+
+.container {
+  max-width: 320px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: clamp(16px, 4vw, 24px) clamp(16px, 6vw, 28px);
+  padding-top: clamp(56px, 12vh, 96px);
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+.title {
+  @include fonts.text-big-title;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+  margin: 0 0 6px; 
+}
+
+.subtitle {
+  @include fonts.text-body;
+  color: var(--subtext);
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.inlineLink {
+  @include fonts.text-body;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  @include fonts.text-small-title;
+  font-weight: 800;
+  margin-top: 8px;
+  color: var(--text);
+}
+
+.forgotRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.error {
+  @include fonts.text-body;
+  color: #d10000;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.submit {
+  width: 100%;
+  margin-top: 14px;
+}

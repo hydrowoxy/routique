@@ -4,11 +4,11 @@
   margin: 0 auto;
   max-width: 720px;
 
-  padding: clamp(18px, 5vw, 28px) clamp(16px, 5vw, 24px);
-
   display: grid;
   padding-bottom: 10vh;
   padding-top: 5vh;
+  padding-left: 3vh;
+  padding-right: 3vh;
 }
 
 .sectionGap {

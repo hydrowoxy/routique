@@ -61,7 +61,7 @@ export default function Nav() {
     })();
   }, [uid]);
 
-  // Live-update the avatar when the row changes (e.g. after you press “Update Profile”)
+  // Live-update the avatar when the row changes
   useEffect(() => {
     if (!uid) return;
 
@@ -86,48 +86,38 @@ export default function Nav() {
 
   return (
     <nav className={styles.nav}>
-      {session ? (
-        <>
-          <Link href="/" className={styles.item} aria-label="Home">
-            <Image className={styles.icon} src="/icons/home.svg" alt="" width={15} height={15} />
-          </Link>
+      <Link href="/" className={styles.item} aria-label="Home">
+        <Image className={styles.icon} src="/icons/home.svg" alt="" width={15} height={15} />
+      </Link>
 
-          <Link href="/boutique" className={styles.item} aria-label="Boutique">
-            <Image className={styles.icon} src="/icons/heart.svg" alt="" width={15} height={15} />
-          </Link>
+      <Link href={session ? "/boutique" : "/login"} className={styles.item} aria-label="Boutique">
+        <Image className={styles.icon} src="/icons/heart.svg" alt="" width={15} height={15} />
+      </Link>
 
-          <Link href="/create" className={styles.item} aria-label="Create">
-            <Image className={styles.icon} src="/icons/create.svg" alt="" width={15} height={15} />
-          </Link>
+      <Link href={session ? "/create" : "/login"} className={styles.item} aria-label="Create">
+        <Image className={styles.icon} src="/icons/create.svg" alt="" width={15} height={15} />
+      </Link>
 
-          {/* Avatar (fallback to placeholder) */}
-          <Link
-            href={username ? `/${username}` : "/settings"}
-            className={styles.item}
-            aria-label="My Page"
-          >
-            {avatarUrl ? (
-              <img
-                className={styles.avatar}
-                src={avatarUrl}
-                alt=""
-                onError={() => {
-                  // if the URL 404s due to cache or wrong path, fallback to placeholder
-                  console.warn("[Nav] avatar <img> onError -> showing placeholder");
-                  setAvatarUrl(null);
-                }}
-              />
-            ) : (
-              <span className={styles.avatarPlaceholder} />
-            )}
-          </Link>
-        </>
-      ) : (
-        <>
-          <Link href="/signup" className={styles.item}>Sign Up</Link>
-          <Link href="/login" className={styles.item}>Log In</Link>
-        </>
-      )}
+      {/* Avatar - shows placeholder when not logged in, real avatar when logged in */}
+      <Link
+        href={session && username ? `/${username}` : "/login"}
+        className={styles.item}
+        aria-label="My Page"
+      >
+        {session && avatarUrl ? (
+          <img
+            className={styles.avatar}
+            src={avatarUrl}
+            alt=""
+            onError={() => {
+              console.warn("[Nav] avatar <img> onError -> showing placeholder");
+              setAvatarUrl(null);
+            }}
+          />
+        ) : (
+          <span className={styles.avatarPlaceholder} />
+        )}
+      </Link>
     </nav>
   );
 }

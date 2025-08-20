@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/contexts/ToastContext"; // Add this
+import { useToast } from "@/contexts/ToastContext";
 
 import AvatarInput from "@/components/AvatarInput/AvatarInput";
 import AccentButton from "@/components/AccentButton/AccentButton";
@@ -18,7 +18,7 @@ type ProfileSubset = {
 
 export default function SettingsPage() {
   const { session, loading: authLoading } = useAuth();
-  const { showError, showSuccess } = useToast(); // Add this
+  const { showError, showSuccess } = useToast();
   const router = useRouter();
 
   const uid = session?.user?.id ?? null;
@@ -31,11 +31,6 @@ export default function SettingsPage() {
   // Avatar state
   const [avatarUrl, setAvatarUrl] = useState<string>(""); 
   const originalAvatarKeyRef = useRef<string | null>(null);
-  /**
-   * undefined => unchanged
-   * string    => new key
-   * null      => removed
-   */
   const [newAvatarKey, setNewAvatarKey] = useState<string | null | undefined>(undefined);
 
   const [profileLoading, setProfileLoading] = useState(true);
@@ -43,12 +38,11 @@ export default function SettingsPage() {
   const COOLDOWN_MS = 3000;
   const TIMEOUT_MS = 16000;
 
-  // Load profile once we have a user (don't blank the whole page in the meantime)
+  // Load profile once we have a user
   useEffect(() => {
     if (authLoading) return;
 
     if (!uid) {
-      // only redirect when we *know* there's no session
       router.replace("/login?message=session-expired");
       return;
     }
@@ -90,7 +84,6 @@ export default function SettingsPage() {
       setNewAvatarKey(undefined);
       setProfileLoading(false);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, uid]);
 
   useEffect(() => {
@@ -126,12 +119,14 @@ export default function SettingsPage() {
 
     const timeout = setTimeout(() => {
       setUpdating(false);
-      alert("Server took too long. Try again in a few seconds.");
+      showError("Server took too long. Try again in a few seconds.");
     }, TIMEOUT_MS);
 
     try {
       const patch: Partial<ProfileSubset> = { display_name: displayName.trim() };
-      if (typeof newAvatarKey !== "undefined") patch.avatar_path = newAvatarKey;
+      if (typeof newAvatarKey !== "undefined") {
+        patch.avatar_path = newAvatarKey;
+      }
 
       const { error } = await supabase.from("profiles").update(patch).eq("id", uid);
 
@@ -139,28 +134,18 @@ export default function SettingsPage() {
 
       if (error) {
         console.error("[Settings] update error:", error.message);
-        alert(`Update failed: ${error.message}`);
+        showError(`Update failed: ${error.message}`);
         return;
       }
 
-      // delete old avatar if it was replaced/removed
-      const oldKey = originalAvatarKeyRef.current;
-      const changed =
-        typeof newAvatarKey !== "undefined" &&
-        oldKey !== null &&
-        oldKey !== newAvatarKey;
-
-      if (changed && oldKey) {
-        const { error: delErr } = await deleteAvatar(oldKey);
-        if (delErr) {
-          const msg = typeof delErr === "string" ? delErr : delErr.message;
-          console.warn("[Settings] delete old avatar warning:", msg);
-        }
-        originalAvatarKeyRef.current = newAvatarKey ?? null;
+      // Update the reference to the new avatar key
+      if (typeof newAvatarKey !== "undefined") {
+        originalAvatarKeyRef.current = newAvatarKey;
       }
 
-      showSuccess("Profile updated successfully!"); // Change this
-      // refresh local state
+      showSuccess("Profile updated successfully!");
+      
+      // Refresh local state
       const { data, error: refErr } = await supabase
         .from("profiles")
         .select("display_name, avatar_path")
@@ -171,6 +156,7 @@ export default function SettingsPage() {
         const row = data as ProfileSubset;
         setDisplayName(row.display_name ?? "");
         originalAvatarKeyRef.current = row.avatar_path ?? null;
+        
         if (row.avatar_path) {
           const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(row.avatar_path);
           setAvatarUrl(urlData?.publicUrl || "");
@@ -183,7 +169,7 @@ export default function SettingsPage() {
       clearTimeout(timeout);
       const msg = err instanceof Error ? err.message : typeof err === "string" ? err : "Unknown error";
       console.error("[Settings] unexpected:", msg);
-      alert(`Unexpected error: ${msg}`);
+      showError(`Unexpected error: ${msg}`);
     } finally {
       setUpdating(false);
     }
@@ -195,7 +181,6 @@ export default function SettingsPage() {
     else console.error("[Settings] logout failed:", error.message);
   }
 
-  // Render a small skeleton while auth/profile are loading instead of returning null
   const avatarSkeleton = (
     <div
       style={{
@@ -216,8 +201,6 @@ export default function SettingsPage() {
       <div style={{ marginBottom: 20 }}>
         <div style={{ marginBottom: 20, fontWeight: 700 }}>Profile Information</div>
 
-        {/* Always mount AvatarInput so the circle shows immediately.
-            It will update its preview when avatarUrl/original key arrive. */}
         {uid ? (
           profileLoading ? (
             avatarSkeleton
@@ -228,8 +211,6 @@ export default function SettingsPage() {
               existingKey={originalAvatarKeyRef.current}
               onUpload={onAvatarUpload}
               sizePx={120}
-              // If you still see stale state, uncomment this key to force remount when the DB key changes:
-              // key={`${uid}:${originalAvatarKeyRef.current ?? "none"}`}
             />
           )
         ) : (

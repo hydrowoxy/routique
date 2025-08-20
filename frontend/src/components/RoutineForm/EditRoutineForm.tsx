@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext"; // Add this import
 
 import TitleInput       from "./TitleInput/TitleInput";
 import DescriptionInput from "./DescriptionInput/DescriptionInput";
@@ -24,12 +25,14 @@ type Product = { name: string; links: string[] };
 
 export default function EditRoutineForm({ routineId }: { routineId: string }) {
   const { session, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useToast(); // Add this line
   const router = useRouter();
 
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
-  const [err,      setErr]      = useState("");
-  const [success,  setSuccess]  = useState(false);
+  // Remove these lines since we're using toast:
+  // const [err,      setErr]      = useState("");
+  // const [success,  setSuccess]  = useState(false);
   const [authed,   setAuthed]   = useState(false);
 
   const [title,       setTitle]       = useState("");
@@ -109,12 +112,11 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr(""); setSuccess(false);
 
     console.log("Submitting with imageKey:", imageKey); 
 
     if (!category) {
-      setErr("Please select a category.");
+      showError("Please select a category.");
       return;
     }
 
@@ -128,7 +130,8 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
 
     if (!check.ok) {
       console.warn("Validation failed:", check.msg); 
-      return setErr(check.msg!);
+      showError(check.msg!, 8000); // Show error for 8 seconds
+      return;
     }
 
     const { cleanedProducts } = check.data!;
@@ -147,14 +150,18 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
       .eq("id", routineId);
 
     setSaving(false);
-    if (error) return setErr(error.message);
+    
+    if (error) {
+      showError(error.message);
+      return;
+    }
 
     if (originalKeyRef.current && originalKeyRef.current !== imageKey) {
       console.log("Deleting replaced image:", originalKeyRef.current); 
       await deleteImage(originalKeyRef.current);
     }
 
-    setSuccess(true);
+    showSuccess("Changes saved successfully! Redirecting...");
     setTimeout(() => router.push(`/routine/${routineId}`), 1000);
   };
 
@@ -162,8 +169,11 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      {/* Remove these lines since we're using toast:
       {success && <p style={{ color: "green" }}>Saved. Redirecting…</p>}
       {err && <p style={{ color: "red" }}>{err}</p>}
+      */}
+      
       <ImageInput
         existingUrl={previewUrl}
         onUpload={(newKey) => {

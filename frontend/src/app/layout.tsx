@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { Onest } from "next/font/google";
 import '@/styles/index.scss';
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import Nav from "@/components/Nav/Nav";
 import LinkInterceptorProvider from "@/components/LinkWarning/LinkInterceptorProvider";
 
 const onest = Onest({
   variable: "--font-onest",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -25,9 +27,11 @@ export default function RootLayout({
     <html lang="en" className={onest.variable}>
       <body>
         <AuthProvider>
-          <Nav />
-          {children}
-          <LinkInterceptorProvider />
+          <ToastProvider>
+            <Nav />
+            {children}
+            <LinkInterceptorProvider />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

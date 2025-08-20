@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext"; 
 
 import TitleInput from "./TitleInput/TitleInput";
 import DescriptionInput from "./DescriptionInput/DescriptionInput";
@@ -22,6 +23,7 @@ type Product = { name: string; links: string[] };
 
 export default function RoutineForm() {
   const { session, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useToast(); 
   const router = useRouter();
 
   const [title, setTitle] = useState("");
@@ -34,8 +36,7 @@ export default function RoutineForm() {
   const [previewUrl, setPreviewUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState("");
-  const [success, setSuccess] = useState(false);
+
 
   useEffect(() => {
     if (!authLoading && !session?.user) {
@@ -47,11 +48,9 @@ export default function RoutineForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr("");
-    setSuccess(false);
 
     if (!category) {
-      setErr("Please select a category.");
+      showError("Please select a category.");
       return;
     }
 
@@ -64,7 +63,7 @@ export default function RoutineForm() {
     });
 
     if (!check.ok) {
-      setErr(check.msg!);
+      showError(check.msg!, 8000); // Show error for 8 seconds
       return;
     }
 
@@ -87,9 +86,9 @@ export default function RoutineForm() {
     setSaving(false);
 
     if (error) {
-      setErr(error.message);
+      showError(error.message);
     } else {
-      setSuccess(true);
+      showSuccess("Routine created successfully! Redirecting...");
       setTitle("");
       setDescription("");
       setNotes("");
@@ -107,8 +106,7 @@ export default function RoutineForm() {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      {success && <p style={{ color: "green" }}>Routine created. Redirecting…</p>}
-      {err && <p style={{ color: "red" }}>{err}</p>}
+
 
       <ImageInput
         existingUrl={previewUrl}
@@ -124,8 +122,6 @@ export default function RoutineForm() {
       <TitleInput value={title} onChange={setTitle} />
       <DescriptionInput value={description} onChange={setDescription} />
       <CategoryInput value={category} onChange={setCategory} /> 
-
-
 
       <ProductInput products={products} onChange={setProducts} />
       <NotesInput value={notes} onChange={setNotes} />

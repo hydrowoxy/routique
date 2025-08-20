@@ -3,11 +3,11 @@ import { Onest } from "next/font/google";
 import '@/styles/index.scss';
 import { AuthProvider } from "@/contexts/AuthContext";
 import Nav from "@/components/Nav/Nav";
+import LinkInterceptorProvider from "@/components/LinkWarning/LinkInterceptorProvider";
 
 const onest = Onest({
   variable: "--font-onest",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // adjust weights you actually use
   display: "swap",
 });
 
@@ -27,6 +27,7 @@ export default function RootLayout({
         <AuthProvider>
           <Nav />
           {children}
+          <LinkInterceptorProvider />
         </AuthProvider>
       </body>
     </html>

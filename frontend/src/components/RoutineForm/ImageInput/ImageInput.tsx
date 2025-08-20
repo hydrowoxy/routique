@@ -50,6 +50,18 @@ const processImage = (file: File): Promise<Blob> =>
     img.src = URL.createObjectURL(file);
   });
 
+/** Safe delete with error handling */
+async function safeDeleteImage(key: string) {
+  try {
+    const { error } = await deleteImage(key);
+    if (error) {
+      console.warn(`Failed to delete routine image ${key}:`, error);
+    }
+  } catch (err) {
+    console.warn(`Failed to delete routine image ${key}:`, err);
+  }
+}
+
 export default function ImageInput({
   onUpload,
   existingUrl = null,
@@ -105,16 +117,9 @@ export default function ImageInput({
 
       if (upErr) throw upErr;
 
-      if (
-        previousKey &&
-        previousKey !== fileKey &&
-        previousKey !== originalKeyRef.current
-      ) {
-        const { error: delErr } = await deleteImage(previousKey);
-        if (delErr) {
-          // non-fatal
-          console.warn("[ImageInput] deleteImage error:", delErr);
-        }
+      // Delete the previous image (both temp uploads AND the original when replacing)
+      if (previousKey && previousKey !== fileKey && previousKey !== originalKeyRef.current) {
+        await safeDeleteImage(previousKey);
       }
 
       const { data } = supabase.storage.from("routines").getPublicUrl(fileKey);
@@ -135,9 +140,9 @@ export default function ImageInput({
   };
 
   const remove = async () => {
-    if (currentKey && currentKey !== originalKeyRef.current) {
-      const { error: delErr } = await deleteImage(currentKey);
-      if (delErr) console.warn("[ImageInput] deleteImage error:", delErr);
+    if (currentKey) {
+      // Always delete the current image when removing
+      await safeDeleteImage(currentKey);
     }
     setPreview("");
     setCurrentKey(null);

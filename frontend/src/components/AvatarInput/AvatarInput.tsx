@@ -64,6 +64,18 @@ function keyFromPublicUrl(url: string | null | undefined): string | null {
   }
 }
 
+/** Safe delete with error handling */
+async function safeDeleteAvatar(key: string) {
+  try {
+    const { error } = await supabase.storage.from(BUCKET).remove([key]);
+    if (error) {
+      console.warn(`Failed to delete avatar ${key}:`, error);
+    }
+  } catch (err) {
+    console.warn(`Failed to delete avatar ${key}:`, err);
+  }
+}
+
 export default function AvatarInput({
   userId,
   onUpload,
@@ -141,15 +153,19 @@ export default function AvatarInput({
 
       if (upErr) throw upErr;
 
-      // Delete only intermediate uploads (never the original DB one)
-      if (prevKey && prevKey !== fileKey && prevKey !== originalKeyRef.current) {
-        await supabase.storage.from(BUCKET).remove([prevKey]);
+      // Delete the previous avatar (both temp uploads AND the original)
+      // This ensures old avatars are cleaned up when user changes their profile picture
+      if (prevKey && prevKey !== fileKey) {
+        await safeDeleteAvatar(prevKey);
       }
 
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(fileKey);
       setCurrentKey(fileKey);
       setPreview(data?.publicUrl ?? "");
       onUpload(fileKey);
+      
+      // Update the original key reference to the new one
+      originalKeyRef.current = fileKey;
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : typeof err === "string" ? err : "Upload failed";
@@ -163,11 +179,12 @@ export default function AvatarInput({
     // prevent opening the file picker when clicking the remove pill
     e?.stopPropagation();
 
-    if (currentKey && currentKey !== originalKeyRef.current) {
-      await supabase.storage.from(BUCKET).remove([currentKey]);
+    if (currentKey) {
+      await safeDeleteAvatar(currentKey);
     }
     setPreview("");
     setCurrentKey(null);
+    originalKeyRef.current = null;
     onUpload(""); // tell parent to clear profile.avatar_path
   };
 

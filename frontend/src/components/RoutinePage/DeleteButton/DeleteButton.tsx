@@ -2,34 +2,21 @@
 
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { deleteImage } from '@/utils/deleteImage';
+import { deleteRoutine } from '@/utils/deleteRoutine';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
 import Button from '@/components/Button/Button';
 
 type Props = {
   routineId: string;
-  imageKey?: string | null;
+  imageKey?: string | null; // Can remove this since deleteRoutine handles it
 };
 
-// Turn a public URL into a storage key if needed.
-// Example public URL: /storage/v1/object/public/routines/<KEY>
-function toKey(input?: string | null): string | null {
-  if (!input) return null;
-  try {
-    if (!input.includes('/storage/v1/object')) return input; // already a key
-    const url = new URL(input, typeof window !== 'undefined' ? window.location.origin : 'https://dummy');
-    const path = decodeURIComponent(url.pathname);
-    const marker = '/storage/v1/object/public/routines/';
-    const pos = path.indexOf(marker);
-    if (pos === -1) return input;
-    return path.slice(pos + marker.length);
-  } catch {
-    return input;
-  }
-}
-
-export default function DeleteButton({ routineId, imageKey }: Props) {
+export default function DeleteButton({ routineId }: Props) {
   const router = useRouter();
+  const { session } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -38,40 +25,28 @@ export default function DeleteButton({ routineId, imageKey }: Props) {
     );
     if (!confirmed) return;
 
+    if (!session?.user?.id) {
+      showError('You must be logged in to delete routines');
+      return;
+    }
+
     setLoading(true);
     try {
-      // 1) Fetch latest image_path
-      const { data: row, error: fetchErr } = await supabase
-        .from('routines')
-        .select('image_path')
-        .eq('id', routineId)
-        .single();
-      if (fetchErr) throw fetchErr;
+      const { error } = await deleteRoutine(routineId, session.user.id);
 
-      const keyFromDb = row?.image_path ?? null;
-      const key = toKey(keyFromDb ?? imageKey ?? null);
-
-      // 2) Delete routine row
-      const { error: delRowErr } = await supabase.from('routines').delete().eq('id', routineId);
-      if (delRowErr) throw delRowErr;
-
-      // 3) Best-effort: delete image
-      if (key) {
-        const { error: delImgErr } = await deleteImage(key);
-        if (delImgErr) {
-          const msg = typeof delImgErr === 'string' ? delImgErr : delImgErr.message;
-          console.warn('[DeleteButton] Image deletion failed:', msg);
-        }
+      if (error) {
+        throw error;
       }
 
-      // 4) Redirect to profile/home
-      const { data: authRes } = await supabase.auth.getUser();
-      const username = authRes?.user?.user_metadata?.username;
+      showSuccess('Routine deleted successfully');
+
+      // Redirect to profile
+      const username = session.user.user_metadata?.username;
       router.push(username ? `/${username}` : '/');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error('[DeleteButton] Failed to delete:', msg);
-      alert('Failed to delete. See console for details.');
+      showError('Failed to delete routine. Please try again.');
     } finally {
       setLoading(false);
     }

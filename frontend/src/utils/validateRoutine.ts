@@ -17,122 +17,92 @@ export interface ValidationResult {
   };
 }
 
-// URL validation helper
-function isValidURL(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    
-    // Must be HTTP or HTTPS
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-      return false;
-    }
-    
-    // Must have a valid hostname
-    if (!parsedUrl.hostname || parsedUrl.hostname.length < 3) {
-      return false;
-    }
-    
-    // Must have a proper domain (contains at least one dot)
-    if (!parsedUrl.hostname.includes('.')) {
-      return false;
-    }
+// URL validation using the cleaner approach
+const SHORTENERS = new Set([
+  "bit.ly",
+  "t.co",
+  "tinyurl.com",
+  "goo.gl",
+  "ow.ly",
+  "is.gd",
+  "buff.ly",
+  "rebrand.ly",
+  "lnkd.in",
+]);
 
-    // Check for valid TLD (top-level domain)
-    const parts = parsedUrl.hostname.split('.');
-    const tld = parts[parts.length - 1];
-    
-    // TLD must be at least 2 characters and only letters
-    if (tld.length < 2 || !/^[a-zA-Z]+$/.test(tld)) {
-      return false;
-    }
+const MAX_URL_LEN = 2048;
 
-    // Block common suspicious patterns
-    const suspiciousPatterns = [
-      /bit\.ly/i,
-      /tinyurl/i,
-      /t\.co/i,
-      /goo\.gl/i,
-      /shortened/i,
-      /redirect/i,
-      /malware/i,
-      /virus/i,
-      /phishing/i,
-      /localhost/i,
-      /127\.0\.0\.1/i,
-      /192\.168\./i,
-      /10\./i,
-      /\.zip$/i,
-      /\.exe$/i,
-      /\.scr$/i,
-      /\.bat$/i,
-      /\.cmd$/i,
-      /\.onion$/i, // Tor hidden services
-    ];
-    
-    const fullUrl = url.toLowerCase();
-    for (const pattern of suspiciousPatterns) {
-      if (pattern.test(fullUrl)) {
-        return false;
-      }
-    }
-    
-    return true;
-  } catch {
-    return false;
-  }
+export type LinkRisk = "known" | "unknown" | "blocked";
+
+const KNOWN_OK = new Set([
+  "sephora.com",
+  "sephora.ca",
+  "ulta.com",
+  "amazon.com",
+  "nyxcosmetics.com",
+  "glossier.com",
+  "target.com",
+  "walmart.com",
+  "cvs.com",
+  "walgreens.com",
+  "beautybay.com",
+  "lookfantastic.com",
+  "dermstore.com",
+  "skinstore.com",
+  "nordstrom.com",
+  "macys.com",
+  "sally.com",
+  "sallybeauty.com",
+  "beautylish.com",
+  "spacenk.com",
+  "cultbeauty.com",
+  "feelunique.com",
+  "boots.com",
+  "superdrug.com",
+  // add more over time; used only to reduce warning friction, not to block others
+]);
+
+function isIpHost(host: string): boolean {
+  // IPv4
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return true;
+  // IPv6 like [::1]
+  if (host.startsWith("[") && host.endsWith("]")) return true;
+  return false;
 }
 
-// Check if URL is HTTPS (for security recommendation)
-function isSecureURL(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.protocol === 'https:';
-  } catch {
-    return false;
-  }
+function apex(host: string): string {
+  const h = host.toLowerCase();
+  const parts = h.split(".");
+  if (parts.length < 2) return h;
+  return parts.slice(-2).join(".");
 }
 
-// Basic check to see if it looks like a real domain (not just random text)
-function hasValidDomainStructure(url: string): boolean {
+export function validateHttpsUrl(
+  raw: string
+): { ok: true; url: URL; risk: LinkRisk } | { ok: false; reason: string } {
+  if (!raw) return { ok: false, reason: "Empty URL" };
+  if (raw.length > MAX_URL_LEN) return { ok: false, reason: "URL too long" };
+
+  let u: URL;
   try {
-    const parsedUrl = new URL(url.toLowerCase());
-    const hostname = parsedUrl.hostname.replace('www.', '');
-    
-    // Split into parts
-    const parts = hostname.split('.');
-    
-    // Must have at least 2 parts (domain.tld)
-    if (parts.length < 2) {
-      return false;
-    }
-    
-    // Each part must be valid (letters, numbers, hyphens only)
-    for (const part of parts) {
-      if (!/^[a-zA-Z0-9-]+$/.test(part)) {
-        return false;
-      }
-      
-      // Can't start or end with hyphen
-      if (part.startsWith('-') || part.endsWith('-')) {
-        return false;
-      }
-      
-      // Must have at least 1 character
-      if (part.length === 0) {
-        return false;
-      }
-    }
-    
-    // Domain part (before TLD) should be reasonable length
-    const domain = parts[parts.length - 2];
-    if (domain.length < 1 || domain.length > 63) {
-      return false;
-    }
-    
-    return true;
+    u = new URL(raw);
   } catch {
-    return false;
+    return { ok: false, reason: "Malformed URL" };
   }
+
+  if (u.protocol !== "https:") return { ok: false, reason: "HTTPS required" };
+  if (!u.hostname) return { ok: false, reason: "Missing host" };
+  if (!u.hostname.includes(".")) return { ok: false, reason: "Host must include a TLD" };
+  if (u.username || u.password) return { ok: false, reason: "Credentials in URL not allowed" };
+  if (u.port) return { ok: false, reason: "Custom ports not allowed" };
+  if (isIpHost(u.hostname)) return { ok: false, reason: "IP addresses are not allowed" };
+
+  // classify
+  const hostApex = apex(u.hostname);
+  if (SHORTENERS.has(hostApex)) return { ok: false, reason: "URL shorteners are not allowed" };
+
+  const risk: LinkRisk = KNOWN_OK.has(hostApex) ? "known" : "unknown";
+  return { ok: true, url: u, risk };
 }
 
 export function validateRoutine(input: RoutinePayload): ValidationResult {
@@ -175,18 +145,18 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
 
   // --- Clean + validate products ---
   const cleanedProducts: Product[] = input.products
-    .map(p => ({
+    .map((p) => ({
       name: p.name.trim(),
-      links: p.links.map(l => l.trim()).filter(Boolean),
+      links: p.links.map((l) => l.trim()).filter(Boolean),
     }))
-    .filter(p => p.name || p.links.length); // drop fully empty ones
+    .filter((p) => p.name || p.links.length); // drop fully empty ones
 
   // Ensure at least one product has something
   if (cleanedProducts.length === 0) {
     return { ok: false, msg: "Please add at least one product with content." };
   }
 
-  const productNames = cleanedProducts.map(p => p.name.toLowerCase());
+  const productNames = cleanedProducts.map((p) => p.name.toLowerCase());
   if (new Set(productNames).size !== productNames.length) {
     return { ok: false, msg: "Each product must have a unique name." };
   }
@@ -215,27 +185,15 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
         };
       }
 
-      // --- URL validation ---
-      if (!isValidURL(link)) {
+      // --- Use the new URL validation ---
+      const urlValidation = validateHttpsUrl(link);
+      if (!urlValidation.ok) {
         return {
           ok: false,
-          msg: `Invalid URL in "${p.name || "(unnamed)"}": Please provide a valid web address starting with https://`,
+          msg: `Invalid URL in "${p.name || "(unnamed)"}": ${urlValidation.reason}`,
         };
       }
 
-      if (!isSecureURL(link)) {
-        return {
-          ok: false,
-          msg: `Insecure URL in "${p.name || "(unnamed)"}": Please use HTTPS links for security. HTTP links are not allowed.`,
-        };
-      }
-
-      if (!hasValidDomainStructure(link)) {
-        return {
-          ok: false,
-          msg: `Invalid domain in "${p.name || "(unnamed)"}": Please ensure the link has a valid domain structure (e.g., example.com).`,
-        };
-      }
     }
   }
 

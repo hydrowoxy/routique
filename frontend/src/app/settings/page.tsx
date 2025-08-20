@@ -4,12 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useToast } from "@/contexts/ToastContext"; // Add this
 
 import AvatarInput from "@/components/AvatarInput/AvatarInput";
 import AccentButton from "@/components/AccentButton/AccentButton";
 import Button from "@/components/Button/Button";
 import Input from "@/components/Input/Input";
-import { deleteAvatar } from "@/utils/deleteAvatar";
 
 type ProfileSubset = {
   display_name: string | null;
@@ -18,6 +18,7 @@ type ProfileSubset = {
 
 export default function SettingsPage() {
   const { session, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useToast(); // Add this
   const router = useRouter();
 
   const uid = session?.user?.id ?? null;
@@ -42,12 +43,12 @@ export default function SettingsPage() {
   const COOLDOWN_MS = 3000;
   const TIMEOUT_MS = 16000;
 
-  // Load profile once we have a user (don’t blank the whole page in the meantime)
+  // Load profile once we have a user (don't blank the whole page in the meantime)
   useEffect(() => {
     if (authLoading) return;
 
     if (!uid) {
-      // only redirect when we *know* there’s no session
+      // only redirect when we *know* there's no session
       router.replace("/login?message=session-expired");
       return;
     }
@@ -158,7 +159,7 @@ export default function SettingsPage() {
         originalAvatarKeyRef.current = newAvatarKey ?? null;
       }
 
-      alert("Profile updated successfully!");
+      showSuccess("Profile updated successfully!"); // Change this
       // refresh local state
       const { data, error: refErr } = await supabase
         .from("profiles")

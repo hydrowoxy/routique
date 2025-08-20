@@ -1,4 +1,4 @@
-@use "@/styles/fonts" as fonts;
+@use '@/styles/fonts' as fonts;
 
 .container {
   display: flex;
@@ -9,7 +9,6 @@
   padding: 2rem;
   background: white;
   position: relative;
-  padding-bottom: 3rem;
 }
 
 .content {
@@ -31,12 +30,12 @@
 }
 
 .signupPrompt {
-  @include fonts.text-body;
   margin-top: 0.5rem;
   display: flex;
   gap: 0.25rem;
   justify-content: center;
   align-items: center;
+  @include fonts.text-body;
 }
 
 .signupLink {
@@ -44,7 +43,7 @@
   text-decoration: none;
   font-weight: 500;
   @include fonts.text-body;
-
+  
   &:hover {
     text-decoration: underline;
   }
@@ -54,7 +53,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding-bottom: 2rem;
 }
 
 .inputGroup {
@@ -64,6 +62,24 @@
   
   label {
     @include fonts.text-body;
+  }
+}
+
+.inputField {
+  width: 100%;
+  padding: 12px 16px; 
+  border: none;
+  border-radius: 8px;
+  background: var(--muted);
+  @include fonts.text-body;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &::placeholder {
+    color: var(--subtext);
   }
 }
 
@@ -80,14 +96,14 @@
   border-radius: 8px;
   background: var(--muted);
   @include fonts.text-body;
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
   
   &::placeholder {
-    color: #999;
+    color: var(--subtext);
   }
 }
 
@@ -98,7 +114,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #666;
+  color: var(--subtext);
   cursor: pointer;
   padding: 4px 8px;
   font-weight: 500;
@@ -117,9 +133,8 @@
 
 .forgotPassword {
   align-self: flex-end;
-  color: var(--subtext);
+  color: var(--primary);
   text-decoration: none;
-  margin-top: 0.4rem;
   @include fonts.text-body;
   
   &:hover {

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 
-import Input from "@/components/Input/Input";
 import AccentButton from "@/components/AccentButton/AccentButton";
 import styles from "@/components/Signup/Signup.module.scss";
 
@@ -166,37 +165,40 @@ export default function SignupPage() {
         <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
           <div className={styles.inputGroup}>
             <label>Username</label>
-            <Input
+            <input
               type="text"
               placeholder="ex: jon_smith"
               value={username}
-              onChange={setUsername}
-              onKeyPress={handleKeyPress}
+              onChange={(e) => setUsername(e.target.value)}
+              onKeyDown={handleKeyPress}
               disabled={loading}
+              className={styles.inputField}
             />
           </div>
 
           <div className={styles.inputGroup}>
             <label>Display Name</label>
-            <Input
+            <input
               type="text"
               placeholder="ex: Jon Smith"
               value={displayName}
-              onChange={setDisplayName}
-              onKeyPress={handleKeyPress}
+              onChange={(e) => setDisplayName(e.target.value)}
+              onKeyDown={handleKeyPress}
               disabled={loading}
+              className={styles.inputField}
             />
           </div>
 
           <div className={styles.inputGroup}>
             <label>Email</label>
-            <Input
+            <input
               type="email"
               placeholder="ex: jon.smith@email.com"
               value={email}
-              onChange={setEmail}
-              onKeyPress={handleKeyPress}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={handleKeyPress}
               disabled={loading}
+              className={styles.inputField}
             />
           </div>
 

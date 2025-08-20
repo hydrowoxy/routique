@@ -71,7 +71,6 @@ export default function Nav() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${uid}` },
         (payload) => {
-          // @ts-expect-error payload.new is typed loosely
           const newPath = payload?.new?.avatar_path as string | null | undefined;
           console.debug("[Nav] realtime update, new avatar_path:", newPath);
           setAvatarUrl(publicUrlFromPath("avatars", newPath));

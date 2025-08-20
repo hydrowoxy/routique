@@ -1,5 +1,13 @@
 import styles from "./Header.module.scss";
 
+interface HeaderProps {
+  title: string;
+  profile: {
+    username: string;
+    display_name?: string;
+  };
+}
+
 export default function Header({ title, profile }: HeaderProps) {
   return (
     <header className={styles.header}>

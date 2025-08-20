@@ -1,4 +1,4 @@
-@import '@/styles/fonts';
+@use '@/styles/fonts' as fonts;
 
 .container {
   display: flex;
@@ -7,9 +7,9 @@
   justify-content: center;
   min-height: 100vh;
   padding: 2rem;
-  background: white;
+  background: var(--background);
   position: relative;
-  padding-bottom: 5rem;
+  padding-bottom: 7vh;
 }
 
 .content {
@@ -26,7 +26,7 @@
   text-align: center;
   
   h1 {
-    @include text-big-title;
+    @include fonts.text-big-title;
   }
 }
 
@@ -36,14 +36,14 @@
   gap: 0.25rem;
   justify-content: center;
   align-items: center;
-  @include text-body;
+  @include fonts.text-body;
 }
 
 .loginLink {
   color: var(--primary);
   text-decoration: none;
   font-weight: 500;
-  @include text-body;
+  @include fonts.text-body;
   
   &:hover {
     text-decoration: underline;
@@ -62,7 +62,25 @@
   gap: 0.5rem;
   
   label {
-    @include text-body;
+    @include fonts.text-body;
+  }
+}
+
+.inputField {
+  width: 100%;
+  padding: 12px 16px; 
+  border: none;
+  border-radius: 8px;
+  background: var(--muted);
+  @include fonts.text-body;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  &::placeholder {
+    color: var(--subtext);
   }
 }
 
@@ -78,21 +96,15 @@
   border: none;
   border-radius: 8px;
   background: var(--muted);
-  @include text-body;
-  
-  &:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 1px;
-    border-color: var(--primary);
-  }
-  
+  @include fonts.text-body;
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
   
   &::placeholder {
-    color: #999;
+    color: var(--subtext);
   }
 }
 
@@ -103,12 +115,12 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #666;
+  color: var(--subtext);
   cursor: pointer;
   padding: 4px 8px;
   font-weight: 500;
   z-index: 10;
-  @include text-body;
+  @include fonts.text-body;
   
   &:hover {
     color: #333;
@@ -125,18 +137,18 @@
   align-items: flex-start;
   gap: 0.75rem;
   margin-top: 0.5rem;
-  @include text-body;
+  @include fonts.text-body;
 }
 
 .checkbox {
-  margin-top: 2px; /* Align with first line of text */
+  margin-top: 2px; 
   min-width: 16px;
   height: 16px;
   accent-color: var(--primary);
 }
 
 .termsText {
-  @include text-body;
+  @include fonts.text-body;
   line-height: 1.4;
 }
 
@@ -156,7 +168,7 @@
   background: #fef2f2;
   border-radius: 8px;
   border: 1px solid #fecaca;
-  @include text-body;
+  @include fonts.text-body;
 }
 
 .success {
@@ -166,7 +178,7 @@
   background: #ecfdf5;
   border-radius: 8px;
   border: 1px solid #a7f3d0;
-  @include text-body;
+  @include fonts.text-body;
 }
 
 .resendButton {
@@ -177,7 +189,7 @@
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   cursor: pointer;
-  @include text-body;
+  @include fonts.text-body;
   
   &:hover {
     background: var(--primary);

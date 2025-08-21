@@ -5,6 +5,7 @@ import Header from "@/components/RoutinePage/Header/Header";
 import Image from "@/components/RoutinePage/Image/Image";
 import Notes from "@/components/RoutinePage/Notes/Notes";
 import Products from "@/components/RoutinePage/Products/Products";
+import Steps from "@/components/RoutinePage/Steps/Steps"; 
 import FavouriteArea from "@/components/RoutinePage/FavouriteArea/FavouriteArea";
 import ViewArea from "../../../components/RoutinePage/ViewArea/ViewArea";
 import OwnerOnly from "@/components/RoutinePage/OwnerOnly/OwnerOnly";
@@ -34,6 +35,15 @@ export default async function RoutinePage(props: {
   if (error) console.error("[routine fetch]", error.message);
   if (!routine) return notFound();
 
+  // Fetch steps for this routine
+  const { data: steps, error: stepsError } = await supabase
+    .from("routine_steps")
+    .select("step_no, body")
+    .eq("routine_id", id)
+    .order("step_no");
+
+  if (stepsError) console.error("[steps fetch]", stepsError.message);
+
   // Fix only: handle array vs object for profiles
   const profile = (Array.isArray(routine.profiles)
     ? routine.profiles[0]
@@ -43,7 +53,7 @@ export default async function RoutinePage(props: {
     display_name: string | null;
   };
 
-    return (
+  return (
     <main className={styles.page}>
       {/* everything else stays the same for now */}
       {routine.image_path && <Image image_path={routine.image_path} />}
@@ -62,6 +72,12 @@ export default async function RoutinePage(props: {
       {Array.isArray(routine.products) && routine.products.length > 0 && (
         <section className={styles.sectionGap}>
           <Products products={routine.products} />
+        </section>
+      )}
+
+      {steps && steps.length > 0 && (
+        <section className={styles.sectionGap}>
+          <Steps steps={steps} />
         </section>
       )}
 

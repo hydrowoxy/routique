@@ -10,6 +10,7 @@ import AvatarInput from "@/components/AvatarInput/AvatarInput";
 import AccentButton from "@/components/AccentButton/AccentButton";
 import Button from "@/components/Button/Button";
 import Input from "@/components/Input/Input";
+import Link from "next/link"; 
 
 type ProfileSubset = {
   display_name: string | null;
@@ -243,6 +244,34 @@ export default function SettingsPage() {
           Logout
         </Button>
       </div>
+
+      <div style={{ marginTop: 24, textAlign: "left", display: "flex", flexDirection: "column", gap: 8 }}>
+        <Link 
+          href="/terms" 
+          style={{ 
+            color: "var(--subtext)", 
+            fontSize: 12, 
+            textDecoration: "underline" 
+          }}
+        >
+          View our terms and conditions
+        </Link>
+        
+        <div style={{ color: "var(--subtext)", fontSize: 12 }}>
+          For questions, concerns, or to report content, reach us at{" "}
+          <a 
+            href="mailto:routique.team@gmail.com"
+            style={{ 
+              color: "var(--subtext)", 
+              textDecoration: "underline" 
+            }}
+          >
+            routique.team@gmail.com
+          </a>
+        </div>
+
+      </div>
+
     </div>
   );
 }

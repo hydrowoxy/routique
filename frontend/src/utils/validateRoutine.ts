@@ -1,4 +1,7 @@
+import { checkContentProfanity } from './profanityFilter'; 
+
 export type Product = { name: string; links: string[] };
+export type Step = { step_no: number; body: string };
 
 export interface RoutinePayload {
   title: string;
@@ -7,6 +10,7 @@ export interface RoutinePayload {
   imagePath: string;
   imageFile?: File; // used to validate file size
   products: Product[];
+  steps: Step[];
 }
 
 export interface ValidationResult {
@@ -14,6 +18,7 @@ export interface ValidationResult {
   msg?: string;
   data?: {
     cleanedProducts: Product[];
+    cleanedSteps: Step[];
   };
 }
 
@@ -114,13 +119,51 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
   const MAX_LINKS = 3;
   const MAX_LINK_LEN = 500;
 
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+  // Steps validation limits
+  const MAX_STEPS = 15;
+  const MAX_STEP_BODY_LEN = 500;
+
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
   // --- Required fields ---
   if (!input.title.trim()) return { ok: false, msg: "Title is required." };
   if (!input.description.trim()) return { ok: false, msg: "Description is required." };
   if (!input.notes.trim()) return { ok: false, msg: "Notes are required." };
   if (!input.imagePath) return { ok: false, msg: "Please upload an image." };
+
+  // --- Profanity check (early check before processing) - FIXED: renamed variables ---
+  const steps = input.steps || [];
+  const products = input.products || [];
+  
+  console.log('Raw steps data:', steps); // Debug log
+  console.log('Raw products data:', products); // Debug log
+  
+  // Extract step bodies and product names with better filtering
+  const stepBodies = steps
+    .map((s) => s?.body?.trim()) // Safely access body and trim
+    .filter((body) => body && body.length > 0); // Only include non-empty bodies
+    
+  const profanityProductNames = products // RENAMED: to avoid conflict
+    .map((p) => p?.name?.trim()) // Safely access name and trim
+    .filter((name) => name && name.length > 0); // Only include non-empty names
+  
+  console.log('Extracted step bodies:', stepBodies); // Debug log
+  console.log('Extracted product names:', profanityProductNames); // Debug log
+  
+  const profanityCheck = checkContentProfanity({
+    title: input.title,
+    description: input.description,
+    notes: input.notes,
+    productNames: profanityProductNames, // UPDATED: use renamed variable
+    stepBodies: stepBodies,
+  });
+
+  if (profanityCheck.hasProfanity) {
+    return {
+      ok: false,
+      msg: `Content contains inappropriate language in ${profanityCheck.field}. Please revise and try again.`,
+    };
+  }
 
   // --- Length limits ---
   if (input.title.length > MAX_TITLE_LEN) {
@@ -138,13 +181,36 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
     return { ok: false, msg: "Image is too large (max 5MB)." };
   }
 
+  // --- Steps validation ---
+  if (steps.length > MAX_STEPS) {
+    return { ok: false, msg: `Maximum ${MAX_STEPS} steps allowed.` };
+  }
+
+  // Clean and validate steps
+  const cleanedSteps: Step[] = steps
+    .map((step, index) => ({
+      step_no: index + 1, // Renumber steps to be consecutive
+      body: step.body.trim(),
+    }))
+    .filter((step) => step.body.length > 0); // Remove empty steps
+
+  // Validate individual step length
+  for (const step of cleanedSteps) {
+    if (step.body.length > MAX_STEP_BODY_LEN) {
+      return {
+        ok: false,
+        msg: `Step ${step.step_no} is too long (max ${MAX_STEP_BODY_LEN} characters).`,
+      };
+    }
+  }
+
   // --- Product limits ---
-  if (input.products.length > MAX_PRODUCTS) {
+  if (products.length > MAX_PRODUCTS) {
     return { ok: false, msg: `Maximum ${MAX_PRODUCTS} products allowed.` };
   }
 
   // --- Clean + validate products ---
-  const cleanedProducts: Product[] = input.products
+  const cleanedProducts: Product[] = products
     .map((p) => ({
       name: p.name.trim(),
       links: p.links.map((l) => l.trim()).filter(Boolean),
@@ -156,6 +222,7 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
     return { ok: false, msg: "Please add at least one product with content." };
   }
 
+  // KEPT ORIGINAL: This productNames variable is different (for duplicate checking)
   const productNames = cleanedProducts.map((p) => p.name.toLowerCase());
   if (new Set(productNames).size !== productNames.length) {
     return { ok: false, msg: "Each product must have a unique name." };
@@ -185,7 +252,6 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
         };
       }
 
-      // --- Use the new URL validation ---
       const urlValidation = validateHttpsUrl(link);
       if (!urlValidation.ok) {
         return {
@@ -193,7 +259,6 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
           msg: `Invalid URL in "${p.name || "(unnamed)"}": ${urlValidation.reason}`,
         };
       }
-
     }
   }
 
@@ -201,6 +266,7 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
     ok: true,
     data: {
       cleanedProducts,
+      cleanedSteps,
     },
   };
 }

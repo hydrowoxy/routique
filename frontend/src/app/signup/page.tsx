@@ -48,7 +48,7 @@ export default function SignupPage() {
     }
 
     if (!acceptedTerms) {
-      setError("Please accept the terms & policy.");
+      setError("Please accept the terms & conditions.");
       return;
     }
 

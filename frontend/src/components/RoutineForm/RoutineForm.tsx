@@ -9,6 +9,7 @@ import TitleInput from "./TitleInput/TitleInput";
 import DescriptionInput from "./DescriptionInput/DescriptionInput";
 import NotesInput from "./NotesInput/NotesInput";
 import ProductInput from "./ProductInput/ProductInput";
+import StepsInput from "./StepsInput/StepsInput"; 
 import ImageInput from "./ImageInput/ImageInput";
 import CategoryInput from "./CategoryInput/CategoryInput"; 
 import Loading from "../Loading/Loading";
@@ -20,6 +21,7 @@ import styles from "./RoutineForm.module.scss";
 import AccentButton from "../AccentButton/AccentButton";
 
 type Product = { name: string; links: string[] };
+type Step = { step_no: number; body: string };
 
 export default function RoutineForm() {
   const { session, loading: authLoading } = useAuth();
@@ -30,13 +32,13 @@ export default function RoutineForm() {
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [steps, setSteps] = useState<Step[]>([]); 
   const [category, setCategory] = useState(""); 
 
   const [imageKey, setImageKey] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
-
 
   useEffect(() => {
     if (!authLoading && !session?.user) {
@@ -63,15 +65,17 @@ export default function RoutineForm() {
     });
 
     if (!check.ok) {
-      showError(check.msg!, 8000); // Show error for 8 seconds
+      showError(check.msg!, 8000);
       return;
     }
 
     const { cleanedProducts } = check.data!;
     setSaving(true);
 
-    const { error } = await supabase.from("routines").insert({
-      id: crypto.randomUUID(),
+    // Create the routine first
+    const routineId = crypto.randomUUID();
+    const { error: routineError } = await supabase.from("routines").insert({
+      id: routineId,
       user_id: session.user.id,
       title: title.trim(),
       description: description.trim(),
@@ -83,31 +87,52 @@ export default function RoutineForm() {
       favourite_count: 0,
     });
 
-    setSaving(false);
+    if (routineError) {
+      setSaving(false);
+      showError(routineError.message);
+      return;
+    }
 
-    if (error) {
-      showError(error.message);
-    } else {
-      showSuccess("Routine created successfully! Redirecting...");
-      setTitle("");
-      setDescription("");
-      setNotes("");
-      setProducts([]);
-      setCategory(""); 
-      setImageKey("");
-      setPreviewUrl("");
+    // If there are steps, insert them
+    if (steps.length > 0) {
+      const stepsToInsert = steps.map(step => ({
+        routine_id: routineId,
+        step_no: step.step_no,
+        body: step.body.trim(),
+      }));
 
-      const username = session.user.user_metadata?.username;
-      if (username) {
-        setTimeout(() => router.push(`/${username}`), 1000);
+      const { error: stepsError } = await supabase
+        .from("routine_steps")
+        .insert(stepsToInsert);
+
+      if (stepsError) {
+        setSaving(false);
+        showError(`Routine created but steps failed to save: ${stepsError.message}`);
+        return;
       }
+    }
+
+    setSaving(false);
+    showSuccess("Routine created successfully! Redirecting...");
+    
+    // Reset form
+    setTitle("");
+    setDescription("");
+    setNotes("");
+    setProducts([]);
+    setSteps([]); // Reset steps
+    setCategory(""); 
+    setImageKey("");
+    setPreviewUrl("");
+
+    const username = session.user.user_metadata?.username;
+    if (username) {
+      setTimeout(() => router.push(`/${username}`), 1000);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-
-
       <ImageInput
         existingUrl={previewUrl}
         onUpload={(newKey) => {
@@ -124,6 +149,7 @@ export default function RoutineForm() {
       <CategoryInput value={category} onChange={setCategory} /> 
 
       <ProductInput products={products} onChange={setProducts} />
+      <StepsInput steps={steps} onChange={setSteps} /> 
       <NotesInput value={notes} onChange={setNotes} />
 
       <AccentButton type="submit" disabled={saving || !title.trim() || !imageKey}>

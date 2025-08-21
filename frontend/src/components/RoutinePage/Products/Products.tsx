@@ -2,6 +2,18 @@ import styles from "./Products.module.scss";
 
 type Product = { name: string; links?: string[] };
 
+// Helper function to extract domain from URL
+function getDomainFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Remove www. prefix if present
+    return urlObj.hostname.replace(/^www\./, '');
+  } catch {
+    // Fallback if URL is malformed
+    return url;
+  }
+}
+
 export default function Products({ products }: { products: Product[] | null }) {
   if (!products || products.length === 0) return null;
 
@@ -29,9 +41,9 @@ export default function Products({ products }: { products: Product[] | null }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles.link}
-                    title={l}
+                    title={l} // Show full URL on hover
                   >
-                    {l}
+                    {getDomainFromUrl(l)}
                   </a>
                 ))
               ) : (

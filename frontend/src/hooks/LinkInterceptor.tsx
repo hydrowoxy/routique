@@ -9,21 +9,21 @@ export function useLinkInterceptor() {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      console.log('Click detected:', e.target);
+      //console.log('Click detected:', e.target);
       
       const target = e.target as HTMLElement;
       const link = target.closest('a');
       
       if (!link) {
-        console.log('No link found');
+        //console.log('No link found');
         return;
       }
       
       const href = link.getAttribute('href');
-      console.log('Link href:', href);
+      //console.log('Link href:', href);
       
       if (!href) {
-        console.log('No href found');
+        //console.log('No href found');
         return;
       }
 
@@ -31,10 +31,10 @@ export function useLinkInterceptor() {
       const isExternal = href.startsWith('http://') || href.startsWith('https://');
       const isCurrentDomain = href.includes(window.location.hostname);
       
-      console.log('Is external:', isExternal, 'Is current domain:', isCurrentDomain);
+      //console.log('Is external:', isExternal, 'Is current domain:', isCurrentDomain);
       
       if (isExternal && !isCurrentDomain) {
-        console.log('Intercepting external link:', href);
+        //console.log('Intercepting external link:', href);
         e.preventDefault();
         e.stopImmediatePropagation();
         setPendingUrl(href);
@@ -45,17 +45,17 @@ export function useLinkInterceptor() {
 
     // Add event listener with capture = true to catch before other handlers
     document.addEventListener('click', handleClick, { capture: true, passive: false });
-    console.log('Link interceptor installed');
+    //console.log('Link interceptor installed');
 
     return () => {
       document.removeEventListener('click', handleClick, { capture: true });
-      console.log('Link interceptor removed');
+      //console.log('Link interceptor removed');
     };
   }, []);
 
   const handleConfirm = () => {
     if (pendingUrl) {
-      console.log('Opening confirmed link:', pendingUrl);
+      //console.log('Opening confirmed link:', pendingUrl);
       window.open(pendingUrl, '_blank', 'noopener,noreferrer');
     }
     setShowWarning(false);
@@ -63,7 +63,7 @@ export function useLinkInterceptor() {
   };
 
   const handleCancel = () => {
-    console.log('Link cancelled');
+    //console.log('Link cancelled');
     setShowWarning(false);
     setPendingUrl(null);
   };

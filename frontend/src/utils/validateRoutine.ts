@@ -192,15 +192,14 @@ export function validateHttpsUrl(
   // classify
   const hostApex = apex(u.hostname);
   
-  // DEBUG LOGGING (remove these later)
-  console.log('Checking URL:', raw);
-  console.log('Hostname:', u.hostname);
-  console.log('Apex domain:', hostApex);
-  console.log('Is blacklisted?', BLACKLISTED_SITES.has(hostApex));
+  //console.log('Checking URL:', raw);
+  //console.log('Hostname:', u.hostname);
+  //console.log('Apex domain:', hostApex);
+  //console.log('Is blacklisted?', BLACKLISTED_SITES.has(hostApex));
   
   // CHECK BLACKLIST FIRST
   if (BLACKLISTED_SITES.has(hostApex)) {
-    console.log('BLOCKED:', hostApex);
+    //console.log('BLOCKED:', hostApex);
     return { ok: false, reason: "This site is not allowed" };
   }
   
@@ -235,8 +234,8 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
   const steps = input.steps || [];
   const products = input.products || [];
   
-  console.log('Raw steps data:', steps); // Debug log
-  console.log('Raw products data:', products); // Debug log
+  //console.log('Raw steps data:', steps); // Debug log
+  //console.log('Raw products data:', products); // Debug log
   
   // Extract step bodies and product names with better filtering
   const stepBodies = steps
@@ -247,8 +246,8 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
     .map((p) => p?.name?.trim()) // Safely access name and trim
     .filter((name) => name && name.length > 0); // Only include non-empty names
   
-  console.log('Extracted step bodies:', stepBodies); // Debug log
-  console.log('Extracted product names:', profanityProductNames); // Debug log
+  //console.log('Extracted step bodies:', stepBodies); // Debug log
+  //console.log('Extracted product names:', profanityProductNames); // Debug log
   
   const profanityCheck = checkContentProfanity({
     title: input.title,

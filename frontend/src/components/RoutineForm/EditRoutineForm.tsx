@@ -132,21 +132,21 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("Submitting with imageKey:", imageKey); 
+    //console.log("Submitting with imageKey:", imageKey); 
 
     if (!category) {
       showError("Please select a category.");
       return;
     }
 
-    console.log("Form data being validated:", {
-      title,
-      description, 
-      notes,
-      imagePath: imageKey,
-      products,
-      steps 
-    });
+    //console.log("Form data being validated:", {
+    //  title,
+    //  description, 
+    //  notes,
+    //  imagePath: imageKey,
+    //  products,
+    //  steps 
+    //});
 
     const check = validateRoutine({
       title,
@@ -211,7 +211,7 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
 
       // Delete old image if it was replaced
       if (originalKeyRef.current && originalKeyRef.current !== imageKey) {
-        console.log("Deleting replaced image:", originalKeyRef.current); 
+        //console.log("Deleting replaced image:", originalKeyRef.current); 
         await deleteImage(originalKeyRef.current);
       }
 

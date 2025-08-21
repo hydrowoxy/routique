@@ -1,24 +1,42 @@
 .nav {
   position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: 60px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
-
   z-index: 9999;           
   isolation: isolate;
   
   display: flex;
-  justify-content: space-around;
   align-items: center;
 
   backdrop-filter: blur(10px) saturate(100%);
-
   background-color: white;
-  //background-color: rgba(255, 255, 255, 0.50);
 
+  // Mobile: bottom navigation (default)
+  bottom: 0; 
+  left: 0; 
+  right: 0;
+  height: 60px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  justify-content: space-around;
+  flex-direction: row;
   padding-left: 4vh;
   padding-right: 4vh;
 
+  // Desktop: left sidebar navigation
+  @media (min-width: 1024px) { // iPad Pro and larger
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: auto; // Remove right constraint
+    width: 80px;
+    height: 100vh;
+    padding-bottom: 0;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
 }
 
 .item {
@@ -31,7 +49,19 @@
   -webkit-tap-highlight-color: transparent;
   transition: background-color .18s ease, transform .12s ease;
 
-  &:active { transform: translateY(1px) scale(.98); }
+  // Desktop: remove top padding and adjust hover states
+  @media (min-width: 1024px) {
+    padding-top: 0;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    &:active { 
+      transform: translateX(1px) scale(.98); // Horizontal instead of vertical
+      background-color: rgba(0, 0, 0, 0.08); // Slightly darker on click
+    }
+  }
 }
 
 .icon {
@@ -40,6 +70,11 @@
   display: block;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+
+  @media (min-width: 1024px) {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .avatarPlaceholder {
@@ -47,15 +82,25 @@
   height: 20px;
   border-radius: 9999px;
   background: radial-gradient(circle at 30% 30%, black);
+
+  @media (min-width: 1024px) {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 .avatar {
   width: 20px;
   height: 20px;
-  border-radius: 9999px; /* circle */
+  border-radius: 9999px;
   object-fit: cover;
   display: block;
-  background: var(--muted); /* quick fallback while loading */
+  background: var(--muted);
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+
+  @media (min-width: 1024px) {
+    width: 24px;
+    height: 24px;
+  }
 }

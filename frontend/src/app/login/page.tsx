@@ -107,7 +107,7 @@ export default function LoginPage() {
                 type="button"
                 className={styles.showPasswordButton}
                 onClick={() => {
-                  console.log('Toggle clicked, current showPassword:', showPassword)
+                  //console.log('Toggle clicked, current showPassword:', showPassword)
                   setShowPassword(!showPassword)
                 }}
                 disabled={loading}

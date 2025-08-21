@@ -151,3 +151,13 @@
   border: 1px solid #fecaca;
   @include fonts.text-body;
 }
+
+.success {
+  color: #059669;
+  text-align: center;
+  padding: 0.75rem;
+  background: #ecfdf5;
+  border-radius: 8px;
+  border: 1px solid #a7f3d0;
+  @include fonts.text-body;
+}

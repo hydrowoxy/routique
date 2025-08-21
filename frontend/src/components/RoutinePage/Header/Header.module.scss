@@ -2,6 +2,8 @@
 
 .header {
   display: grid;
+  max-width: 100%; 
+  overflow: hidden; 
 }
 
 .title {
@@ -9,6 +11,13 @@
   margin: 0;
   padding-top: 2vh;
   color: var(--text);
+  padding-bottom: 0.5vh;
+  
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
 .byline {

@@ -48,6 +48,11 @@ export default function RoutineForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!session?.user?.id) {
+      showError("Please log in to create a routine.");
+      return;
+    }
+
     if (!category) {
       showError("Please select a category.");
       return;
@@ -59,18 +64,18 @@ export default function RoutineForm() {
       notes,
       imagePath: imageKey,
       products,
-      steps, 
+      steps,
     });
 
     if (!check.ok) {
-      showError(check.msg!, 8000);
+      showError(check.msg!);
       return;
     }
 
     setSaving(true);
 
     try {
-      // Insert routine
+      // Insert routine with products as JSON
       const { data: routineData, error: routineError } = await supabase
         .from("routines")
         .insert({
@@ -80,6 +85,7 @@ export default function RoutineForm() {
           notes: notes.trim(),
           category,
           image_path: imageKey,
+          products: check.data!.cleanedProducts,
         })
         .select("id")
         .single();
@@ -88,22 +94,7 @@ export default function RoutineForm() {
 
       const routineId = routineData.id;
 
-      // Insert products
-      if (check.data!.cleanedProducts.length > 0) {
-        const productsToInsert = check.data!.cleanedProducts.map((p) => ({
-          routine_id: routineId,
-          name: p.name,
-          links: p.links,
-        }));
-
-        const { error: productsError } = await supabase
-          .from("products")
-          .insert(productsToInsert);
-
-        if (productsError) throw productsError;
-      }
-
-      // Insert steps
+      // Insert steps into routine_steps table (FIXED: was "steps", now "routine_steps")
       if (check.data!.cleanedSteps.length > 0) {
         const stepsToInsert = check.data!.cleanedSteps.map((s) => ({
           routine_id: routineId,
@@ -112,7 +103,7 @@ export default function RoutineForm() {
         }));
 
         const { error: stepsError } = await supabase
-          .from("steps")
+          .from("routine_steps") 
           .insert(stepsToInsert);
 
         if (stepsError) throw stepsError;

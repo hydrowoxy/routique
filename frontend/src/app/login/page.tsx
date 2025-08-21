@@ -115,10 +115,11 @@ export default function LoginPage() {
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
-            <Link href="/forgot-password" className={styles.forgotPassword}>
-              Forgot password?
-            </Link>
           </div>
+
+          <Link href="/forgot-password" className={styles.forgotPassword}>
+            Forgot password?
+          </Link>
 
           {error && (
             <div className={styles.error}>

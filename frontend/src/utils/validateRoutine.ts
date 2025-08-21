@@ -35,6 +35,51 @@ const SHORTENERS = new Set([
   "lnkd.in",
 ]);
 
+// BLACKLISTED SITES - Add inappropriate/harmful sites here
+const BLACKLISTED_SITES = new Set([
+  // Adult/Porn sites (MindGeek and others)
+  "pornhub.com",
+  "xvideos.com",
+  "xnxx.com",
+  "redtube.com",
+  "youporn.com",
+  "tube8.com",
+  "spankbang.com",
+  "xhamster.com",
+  "chaturbate.com",
+  "cam4.com",
+  "livejasmin.com",
+  "stripchat.com",
+  "onlyfans.com",
+  "manyvids.com",
+  "clips4sale.com",
+  
+  // Gambling sites
+  "bet365.com",
+  "888casino.com",
+  "pokerstars.com",
+  "draftkings.com",
+  "fanduel.com",
+  
+  // Crypto/MLM scams (common ones)
+  "binance.com",
+  "coinbase.com",
+  "crypto.com",
+  
+  // Sketchy marketplaces
+  "wish.com",
+  "aliexpress.com",
+  "dhgate.com",
+  
+  // File sharing/piracy
+  "mediafire.com",
+  "mega.nz",
+  "rapidshare.com",
+  "4shared.com",
+  
+  // Add more as needed...
+]);
+
 const MAX_URL_LEN = 2048;
 
 export type LinkRisk = "known" | "unknown" | "blocked";
@@ -104,6 +149,12 @@ export function validateHttpsUrl(
 
   // classify
   const hostApex = apex(u.hostname);
+  
+  // CHECK BLACKLIST FIRST
+  if (BLACKLISTED_SITES.has(hostApex)) {
+    return { ok: false, reason: "This site is not allowed" };
+  }
+  
   if (SHORTENERS.has(hostApex)) return { ok: false, reason: "URL shorteners are not allowed" };
 
   const risk: LinkRisk = KNOWN_OK.has(hostApex) ? "known" : "unknown";

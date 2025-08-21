@@ -1,0 +1,23 @@
+@use "@/styles/fonts" as fonts;
+
+.field {
+  @include fonts.text-body;
+
+  width: 100%;
+  padding: 1.5vh 1.5vh;
+  background: var(--muted);
+  border: none;
+  color: var(--text);
+  border-radius: 8px;
+  outline: none;
+
+  &::placeholder {
+    color: var(--subtext);
+  }
+
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+}

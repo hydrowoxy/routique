@@ -1,0 +1,38 @@
+@use '@/styles/fonts' as fonts;
+
+.tabs {
+  display: flex;
+  gap: 1.25rem;
+  padding: 3rem 1rem 0.5rem 1rem; // top, right, bottom, left
+  overflow-x: auto;
+  white-space: nowrap;
+
+  scrollbar-width: none; // hide scrollbar Firefox
+  -ms-overflow-style: none; // hide scrollbar IE/Edge
+  &::-webkit-scrollbar {
+    display: none; // hide scrollbar Chrome/Safari
+  }
+}
+
+.tab {
+  @include fonts.text-small-title;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.activeTab {
+  @include fonts.text-small-title;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: var(--text);
+  font-weight: 800;
+}

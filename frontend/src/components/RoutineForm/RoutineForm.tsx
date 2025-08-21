@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext"; 
 
 import TitleInput from "./TitleInput/TitleInput";
 import DescriptionInput from "./DescriptionInput/DescriptionInput";
 import NotesInput from "./NotesInput/NotesInput";
-import TagInput from "./TagInput/TagInput";
 import ProductInput from "./ProductInput/ProductInput";
+import StepsInput from "./StepsInput/StepsInput"; 
 import ImageInput from "./ImageInput/ImageInput";
 import CategoryInput from "./CategoryInput/CategoryInput"; 
 import Loading from "../Loading/Loading";
@@ -16,25 +17,25 @@ import Loading from "../Loading/Loading";
 import { useRouter } from "next/navigation";
 import { validateRoutine } from "@/utils/validateRoutine";
 
-type Product = { name: string; links: string[] };
+import styles from "./RoutineForm.module.scss";
+import AccentButton from "../AccentButton/AccentButton";
 
 export default function RoutineForm() {
   const { session, loading: authLoading } = useAuth();
+  const { showError, showSuccess } = useToast(); 
   const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
-  const [tags, setTags] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState([{ name: "", links: [""] }]);
+  const [steps, setSteps] = useState([{ step_no: 1, body: "" }]); 
   const [category, setCategory] = useState(""); 
 
   const [imageKey, setImageKey] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState("");
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !session?.user) {
@@ -46,11 +47,14 @@ export default function RoutineForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr("");
-    setSuccess(false);
+
+    if (!session?.user?.id) {
+      showError("Please log in to create a routine.");
+      return;
+    }
 
     if (!category) {
-      setErr("Please select a category.");
+      showError("Please select a category.");
       return;
     }
 
@@ -58,65 +62,66 @@ export default function RoutineForm() {
       title,
       description,
       notes,
-      tagsRaw: tags,
       imagePath: imageKey,
       products,
+      steps,
     });
 
     if (!check.ok) {
-      setErr(check.msg!);
+      showError(check.msg!);
       return;
     }
 
-    const { cleanedProducts, cleanedTags } = check.data!;
     setSaving(true);
 
-    const { error } = await supabase.from("routines").insert({
-      id: crypto.randomUUID(),
-      user_id: session.user.id,
-      title: title.trim(),
-      description: description.trim(),
-      image_path: imageKey,
-      notes: notes.trim(),
-      tags: cleanedTags,
-      products: cleanedProducts,
-      category, 
-      view_count: 0,
-      favourite_count: 0,
-    });
+    try {
+      // Insert routine with products as JSON
+      const { data: routineData, error: routineError } = await supabase
+        .from("routines")
+        .insert({
+          user_id: session.user.id,
+          title: title.trim(),
+          description: description.trim(),
+          notes: notes.trim(),
+          category,
+          image_path: imageKey,
+          products: check.data!.cleanedProducts,
+        })
+        .select("id")
+        .single();
 
-    setSaving(false);
+      if (routineError) throw routineError;
 
-    if (error) {
-      setErr(error.message);
-    } else {
-      setSuccess(true);
-      setTitle("");
-      setDescription("");
-      setNotes("");
-      setTags("");
-      setProducts([]);
-      setCategory(""); 
-      setImageKey("");
-      setPreviewUrl("");
+      const routineId = routineData.id;
 
-      const username = session.user.user_metadata?.username;
-      if (username) {
-        setTimeout(() => router.push(`/${username}`), 1000);
+      // Insert steps into routine_steps table (FIXED: was "steps", now "routine_steps")
+      if (check.data!.cleanedSteps.length > 0) {
+        const stepsToInsert = check.data!.cleanedSteps.map((s) => ({
+          routine_id: routineId,
+          step_no: s.step_no,
+          body: s.body,
+        }));
+
+        const { error: stepsError } = await supabase
+          .from("routine_steps") 
+          .insert(stepsToInsert);
+
+        if (stepsError) throw stepsError;
       }
+
+      showSuccess("Routine created successfully!");
+      router.push(`/routine/${routineId}`);
+    } catch (err) {
+      console.error("Error creating routine:", err);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      showError(`Failed to create routine: ${msg}`);
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create Routine</h2>
-      {success && <p style={{ color: "green" }}>Routine created. Redirecting…</p>}
-      {err && <p style={{ color: "red" }}>{err}</p>}
-
-      <TitleInput value={title} onChange={setTitle} />
-      <DescriptionInput value={description} onChange={setDescription} />
-      <CategoryInput value={category} onChange={setCategory} /> 
-
+    <form onSubmit={handleSubmit} className={styles.form}>
       <ImageInput
         existingUrl={previewUrl}
         onUpload={(newKey) => {
@@ -128,13 +133,17 @@ export default function RoutineForm() {
         }}
       />
 
-      <ProductInput products={products} onChange={setProducts} />
-      <NotesInput value={notes} onChange={setNotes} />
-      <TagInput value={tags} onChange={setTags} />
+      <TitleInput value={title} onChange={setTitle} />
+      <DescriptionInput value={description} onChange={setDescription} />
+      <CategoryInput value={category} onChange={setCategory} /> 
 
-      <button type="submit" disabled={saving || !title.trim() || !imageKey}>
+      <ProductInput products={products} onChange={setProducts} />
+      <StepsInput steps={steps} onChange={setSteps} /> 
+      <NotesInput value={notes} onChange={setNotes} />
+
+      <AccentButton type="submit" disabled={saving || !title.trim() || !imageKey}>
         {saving ? "Saving…" : "Create Routine"}
-      </button>
+      </AccentButton>
     </form>
   );
 }

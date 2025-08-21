@@ -1,0 +1,57 @@
+@use "@/styles/fonts" as fonts;
+
+.wrapper {
+  margin-top: 8px;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;
+  padding-top: 2vh;
+  margin: 18px 0 8px;
+}
+
+.head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.headCell {
+  @include fonts.text-small-title;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.rowBlock {
+  margin-bottom: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  gap: 10px;
+  align-items: start;
+  padding-bottom: 1vh;
+}
+
+.rowActions {
+  margin-top: 6px;
+}
+
+.actions {
+  margin-top: 8px;
+}
+
+// cancel the shadow on Button for this component
+.rowActions :global(button) {
+  box-shadow: none !important;
+  filter: none !important;
+}
+.rowActions :global(button:hover),
+.rowActions :global(button:focus),
+.rowActions :global(button:active) {
+  box-shadow: none !important;
+  filter: none !important;
+}

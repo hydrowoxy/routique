@@ -1,0 +1,64 @@
+@use "@/styles/fonts" as fonts;
+
+.wrapper {
+  --image-input-size: 120px;
+  display: inline-block;
+}
+
+.box {
+  position: relative;
+  width: var(--image-input-size);
+  height: var(--image-input-size);
+  border-radius: 16px;
+  background: var(--muted);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .12s ease;
+
+  &:active { transform: translateY(1px); }
+}
+
+.icon {
+  width: 28px;
+  height: 28px;
+  opacity: .55;
+  pointer-events: none;
+}
+
+.preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: 1px solid var(--outline);
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 999px;
+  @include fonts.text-small;
+  cursor: pointer;
+  transition: transform .12s ease, background .15s ease, border-color .15s ease;
+
+  &:hover {
+    background: var(--background);
+    border-color: var(--primary);
+  }
+  &:active { transform: translateY(1px); }
+}
+
+.error {
+  @include fonts.text-small;
+  color: #d10000;
+  margin-top: 6px;
+}

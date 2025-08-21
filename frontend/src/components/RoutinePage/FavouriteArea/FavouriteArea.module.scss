@@ -1,0 +1,20 @@
+@use "@/styles/fonts" as fonts;
+
+.wrap {
+  display: grid;   
+  padding-bottom: 4vh;    
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;     
+  padding-top: 2vh;
+}
+
+.meta {
+  @include fonts.text-body;
+  margin: 0;
+  color: var(--subtext);
+}

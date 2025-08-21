@@ -1,0 +1,9 @@
+@use "@/styles/fonts" as fonts;
+
+.views {
+  @include fonts.text-body;
+  display: inline-block; 
+  margin: 0;
+  color: var(--subtext);     
+  padding-top: 1vh;
+}

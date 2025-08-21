@@ -1,0 +1,57 @@
+@use "@/styles/fonts" as fonts;
+
+.wrapper {
+  margin-top: 8px;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;
+  padding-top: 2vh;
+  margin: 18px 0 8px;
+}
+
+.rowBlock {
+  margin-bottom: 12px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr; 
+  gap: 10px;
+  align-items: start;
+  padding-bottom: 1vh;
+}
+
+.stepNumber {
+  @include fonts.text-body;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 48px; // Match input height
+  font-size: 18px;
+}
+
+.rowActions {
+  margin-top: 6px;
+  margin-left: 0; 
+}
+
+.actions {
+  margin-top: 8px;
+}
+
+// Cancel the shadow on Button for this component
+.rowActions :global(button) {
+  box-shadow: none !important;
+  filter: none !important;
+}
+.rowActions :global(button:hover),
+.rowActions :global(button:focus),
+.rowActions :global(button:active) {
+  box-shadow: none !important;
+  filter: none !important;
+}

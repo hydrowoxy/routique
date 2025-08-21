@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import RoutineGrid from "@/components/RoutineGrid/RoutineGrid";
 import Loading from "@/components/Loading/Loading";
+import Categories from "@/components/Categories/Categories";
 
-import { CATEGORY_GROUPS } from "@/lib/categories"; 
+import { CATEGORIES } from "@/lib/categories"; // <-- flat list
 import styles from "./Explore.module.scss";
 
 import type { Database } from "@/lib/database.types";
@@ -16,19 +17,31 @@ type Routine = Pick<
   "id" | "title" | "description" | "image_path" | "favourite_count" | "view_count" | "user_id" | "category"
 >;
 
-const TABS = ["All Routines", ...Object.keys(CATEGORY_GROUPS)];
+const TABS = ["All", ...CATEGORIES];
 
 export default function Explore() {
   const { loading: authLoading } = useAuth();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("All Routines");
+  const [selectedTab, setSelectedTab] = useState<string>("All");
 
-  const fetchRoutines = async () => {
+  const fetchRoutines = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("routines")
-        .select("id, title, description, image_path, favourite_count, view_count, user_id, category");
+        .select(`
+          id,
+          title,
+          description,
+          image_path,
+          favourite_count,
+          view_count,
+          user_id,
+          category,
+          profiles!inner (
+            username
+          )
+        `);
 
       if (error) {
         console.error("[Explore] Failed to fetch routines:", error);
@@ -42,52 +55,36 @@ export default function Explore() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
     fetchRoutines();
 
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        fetchRoutines();
-      }
+      if (document.visibilityState === "visible") fetchRoutines();
     };
 
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [authLoading]);
+  }, [authLoading, fetchRoutines]);
 
   const visibleRoutines =
-    selectedTab === "All Routines"
+    selectedTab === "All"
       ? routines
-      : routines.filter((r) =>
-          CATEGORY_GROUPS[selectedTab as keyof typeof CATEGORY_GROUPS]?.includes(r.category ?? "")
-        );
+      : routines.filter((r) => (r.category ?? "") === selectedTab);
 
   return (
-    <div>
-      <h2 className={styles.heading}>Explore Routines</h2>
+    <div className={styles.explore}>
+      <Categories
+        tabs={TABS}
+        selectedTab={selectedTab}
+        onTabSelect={setSelectedTab}
+      />
 
-      <div className={styles.tabs}>
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setSelectedTab(tab)}
-            className={selectedTab === tab ? styles.activeTab : ""}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {loading || authLoading ? (
-        <Loading />
-      ) : (
-        <RoutineGrid routines={visibleRoutines} />
-      )}
+      {loading || authLoading ? <Loading /> : <RoutineGrid routines={visibleRoutines} />}
     </div>
   );
 }

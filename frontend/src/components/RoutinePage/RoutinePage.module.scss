@@ -1,0 +1,63 @@
+@use '@/styles/fonts' as fonts;
+
+.page {
+  margin: 0 auto;
+  width: 100%;
+  max-width: min(720px, 100vw); 
+  display: grid;
+  padding-bottom: 10vh;
+  padding-top: 5vh;
+  padding-left: 3vh;
+  padding-right: 3vh;
+  box-sizing: border-box; 
+  overflow-x: hidden; 
+}
+
+.sectionGap {
+  margin-top: 3vh;
+}
+
+.description {
+  @include fonts.text-body;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;        
+  margin: 0;
+  color: var(--text);
+  padding-bottom: 1vh;
+
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+  line-height: 1.2; 
+}
+
+/*
+.page {
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  padding-bottom: 10vh;
+  padding-top: 5vh;
+  padding-left: 3vh;
+  padding-right: 3vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  
+  // Mobile: full width minus padding
+  max-width: 100vw;
+  
+  // Desktop: centered with max 720px
+  @media (min-width: 768px) {
+    max-width: 720px;
+  }
+}
+*/

@@ -1,0 +1,84 @@
+@use "@/styles/fonts" as fonts;
+
+.products {
+  display: grid;
+  row-gap: .5vh;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;        
+  margin: 0;
+  color: var(--text);
+  padding-bottom: 1vh;
+}
+
+.grid {
+  display: grid;
+  row-gap: 6px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr minmax(140px, 42%);
+  align-items: center;
+  column-gap: clamp(16px, 4vw, 28px);
+  min-width: 0; 
+  padding: 1px 0;
+}
+
+.headerRow .th {
+  @include fonts.text-small-title;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.name {
+  @include fonts.text-body;
+  color: var(--text);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.links {
+  min-width: 0;
+  display: inline-flex;        
+  gap: 10px;
+  max-width: 100%;
+  overflow-x: auto;            
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding-bottom: 2px;          
+
+  /* hide scrollbars */
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge legacy */
+}
+.links::-webkit-scrollbar { display: none; }  
+ 
+.link {
+  @include fonts.text-body;
+  color: var(--primary);
+  text-decoration: underline;
+  white-space: nowrap;
+  flex: 0 0 auto;
+
+}
+
+.link {
+  @include fonts.text-body;
+  color: var(--primary);   
+  text-decoration: underline;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.muted {
+  @include fonts.text-body;
+  color: var(--subtext);
+}

@@ -1,0 +1,15 @@
+@use "@/styles/fonts" as fonts;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;   
+  margin: 12px 0; 
+}
+
+.label {
+  @include fonts.text-title;
+  font-weight: 800;
+  color: var(--text);
+  padding-top: 2vh;
+}

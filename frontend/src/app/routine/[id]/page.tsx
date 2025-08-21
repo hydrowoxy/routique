@@ -5,11 +5,13 @@ import Header from "@/components/RoutinePage/Header/Header";
 import Image from "@/components/RoutinePage/Image/Image";
 import Notes from "@/components/RoutinePage/Notes/Notes";
 import Products from "@/components/RoutinePage/Products/Products";
-import Tags from "@/components/RoutinePage/Tags/Tags";
+import Steps from "@/components/RoutinePage/Steps/Steps"; 
 import FavouriteArea from "@/components/RoutinePage/FavouriteArea/FavouriteArea";
 import ViewArea from "../../../components/RoutinePage/ViewArea/ViewArea";
-import ShareButton from "@/components/RoutinePage/ShareButton/ShareButton";
 import OwnerOnly from "@/components/RoutinePage/OwnerOnly/OwnerOnly";
+
+import styles from "@/components/RoutinePage/RoutinePage.module.scss";
+
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +25,7 @@ export default async function RoutinePage(props: {
     .from("routines")
     .select(
       `id, title, description, image_path,
-             tags, favourite_count, view_count, notes,
+             favourite_count, view_count, notes,
              products,
              profiles: user_id ( id, username, display_name )`
     )
@@ -32,6 +34,15 @@ export default async function RoutinePage(props: {
 
   if (error) console.error("[routine fetch]", error.message);
   if (!routine) return notFound();
+
+  // Fetch steps for this routine
+  const { data: steps, error: stepsError } = await supabase
+    .from("routine_steps")
+    .select("step_no, body")
+    .eq("routine_id", id)
+    .order("step_no");
+
+  if (stepsError) console.error("[steps fetch]", stepsError.message);
 
   // Fix only: handle array vs object for profiles
   const profile = (Array.isArray(routine.profiles)
@@ -43,40 +54,41 @@ export default async function RoutinePage(props: {
   };
 
   return (
-    <main>
+    <main className={styles.page}>
+      {/* everything else stays the same for now */}
+      {routine.image_path && <Image image_path={routine.image_path} />}
+
       <Header
         title={routine.title}
         profile={Array.isArray(routine.profiles) ? routine.profiles[0] : routine.profiles}
       />
 
-      {routine.image_path && <Image image_path={routine.image_path} />}
-
-      <p>{routine.description}</p>
-
-      {routine.notes && <Notes notes={routine.notes} />}
-
-      {Array.isArray(routine.products) && routine.products.length > 0 && (
-        <Products products={routine.products} />
-      )}
-
-      {Array.isArray(routine.tags) && routine.tags.length > 0 && (
-        <Tags tags={routine.tags} />
-      )}
-
-      <FavouriteArea
-        id={routine.id}
-        initialFavourites={routine.favourite_count}
-      />
-
       <ViewArea routineId={routine.id} initialViews={routine.view_count} />
-      <ShareButton routineId={id} />
+      <FavouriteArea id={routine.id} initialFavourites={routine.favourite_count} />
 
-      {/* Only show if current user is the owner */}
-      <OwnerOnly
-        routineId={id}
-        imageKey={routine.image_path}
-        ownerId={profile.id}
-      />
+      <p className={styles.title}>Description</p>
+      <p className={styles.description}>{routine.description}</p>
+      
+      {Array.isArray(routine.products) && routine.products.length > 0 && (
+        <section className={styles.sectionGap}>
+          <Products products={routine.products} />
+        </section>
+      )}
+
+      {steps && steps.length > 0 && (
+        <section className={styles.sectionGap}>
+          <Steps steps={steps} />
+        </section>
+      )}
+
+      {routine.notes && (
+        <section className={styles.sectionGap}>
+          <Notes notes={routine.notes} />
+        </section>
+      )}
+
+      <OwnerOnly routineId={id} imageKey={routine.image_path} ownerId={profile.id} />
+
     </main>
   );
 }

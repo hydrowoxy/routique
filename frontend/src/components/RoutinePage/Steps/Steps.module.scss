@@ -1,0 +1,45 @@
+@use "@/styles/fonts" as fonts;
+
+.steps {
+  margin: 24px 0;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stepRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.stepNumber {
+  @include fonts.text-body;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.stepBody {
+  @include fonts.text-body;
+  color: var(--text);
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

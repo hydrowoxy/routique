@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType>({
 const protectedRoutes = [
   '/settings',
   '/create',
-  '/routine', //todo shouldnt this just be routine/id/edit 
+  '/routine',
 ];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {

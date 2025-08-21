@@ -1,37 +1,37 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import type { Database } from '@/lib/database.types'
+import Link from 'next/link';
+import type { Database } from '@/lib/database.types';
+import styles from './RoutineCard.module.scss';
 
-type Routine = Database['public']['Tables']['routines']['Row']
+type Routine = Database['public']['Tables']['routines']['Row'];
 
 type Props = {
-  routine: Pick<Routine, 'id' | 'title' | 'description' | 'favourite_count' | 'view_count' | 'user_id' | 'image_path' | 'category'>
-}
+  routine: Pick<Routine, 'id' | 'title' | 'user_id' | 'image_path' | 'category'>;
+  username?: string | null;    
+  showUsername?: boolean;       // toggle display, defaults true
+};
 
-export default function RoutineCard({ routine }: Props) {
+export default function RoutineCard({ routine, username, showUsername = true }: Props) {
   const imageUrl = routine.image_path
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/routines/${routine.image_path}`
-    : null
+    : null;
 
   return (
-    <Link href={`/routine/${routine.id}`}>
-      <article>
-        {imageUrl && (
-          <img src={imageUrl} alt={routine.title} />
-        )}
+    <div className={styles.wrapper}>
+      <Link href={`/routine/${routine.id}`} className={styles.card}>
+        <article>
+          {imageUrl && <img src={imageUrl} alt={routine.title} className={styles.image} />}
+          <div className={styles.info}>
+            <h2 className={styles.title}>{routine.title}</h2>
+            {routine.category && <p className={styles.category}>{routine.category}</p>}
+          </div>
+        </article>
+      </Link>
 
-        <h2>{routine.title}</h2>
-
-        {routine.category && (
-            <p style={{ fontStyle: 'italic' }}>{routine.category}</p>
-        )}
-
-        <div>
-          <span>{routine.view_count ?? 0} views</span> ·{' '}
-          <span>{routine.favourite_count ?? 0} favorites</span>
-        </div>
-      </article>
-    </Link>
-  )
+      {showUsername && username && (
+        <p className={styles.username}>@{username}</p>
+      )}
+    </div>
+  );
 }

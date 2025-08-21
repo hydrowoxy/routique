@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { ChangeEvent } from 'react';
+import Input from "@/components/Input/Input";
+import styles from "./TitleInput.module.scss";
 
 type Props = {
   value: string;
@@ -10,12 +11,13 @@ type Props = {
 
 export default function TitleInput({ value, onChange, disabled = false }: Props) {
   return (
-    <input
-      type="text"
-      placeholder="Title"
-      value={value}
-      onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-      disabled={disabled}
-    />
+    <div className={styles.wrapper}>
+      <Input
+        value={value}
+        onChange={onChange}
+        placeholder="Routine Name"
+        disabled={disabled}
+      />
+    </div>
   );
 }

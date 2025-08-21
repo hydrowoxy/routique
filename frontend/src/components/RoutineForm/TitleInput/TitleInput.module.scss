@@ -1,0 +1,8 @@
+@use "@/styles/fonts" as fonts;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2vh 0;
+}

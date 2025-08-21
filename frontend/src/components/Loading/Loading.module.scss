@@ -1,0 +1,48 @@
+@use '@/styles/fonts' as fonts;
+
+.wrapper {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  gap: 10px; 
+  padding-top: 10vh; 
+  justify-content: flex-start; 
+  padding-top: 32vh; 
+}
+
+.loader {
+  width: 60px;
+  height: 60px;
+  border: 3px solid transparent;
+  border-top-color: var(--primary);
+  border-right-color: var(--secondary);
+  border-bottom-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.circle {
+  display: none;
+}
+
+.text {
+  @include fonts.text-title;
+  color: var(--text);
+  margin-top: 8px;
+}
+
+.subtext {
+  @include fonts.text-small; 
+  color: var(--subtext);
+  max-width: 280px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

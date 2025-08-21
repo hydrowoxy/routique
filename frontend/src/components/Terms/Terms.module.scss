@@ -1,0 +1,53 @@
+@use "@/styles/fonts" as fonts;
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.title {
+  @include fonts.text-title;
+  font-weight: 800;
+  font-size: 32px;
+  margin-bottom: 32px;
+  color: var(--text);
+  text-align: left;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  @include fonts.text-body;
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.body {
+  @include fonts.text-body;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.list {
+  @include fonts.text-body;
+  color: var(--text);
+  line-height: 1.6;
+  margin-left: 20px;
+  margin-bottom: 12px;
+}
+
+.list li {
+  margin-bottom: 4px;
+}

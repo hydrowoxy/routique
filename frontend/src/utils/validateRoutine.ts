@@ -1,13 +1,16 @@
+import { checkContentProfanity } from './profanityFilter'; 
+
 export type Product = { name: string; links: string[] };
+export type Step = { step_no: number; body: string };
 
 export interface RoutinePayload {
   title: string;
   description: string;
   notes: string;
-  tagsRaw: string; // comma-separated string from the textarea
   imagePath: string;
   imageFile?: File; // used to validate file size
   products: Product[];
+  steps: Step[];
 }
 
 export interface ValidationResult {
@@ -15,30 +18,252 @@ export interface ValidationResult {
   msg?: string;
   data?: {
     cleanedProducts: Product[];
-    cleanedTags: string[];
+    cleanedSteps: Step[];
   };
+}
+
+// URL validation using the cleaner approach
+const SHORTENERS = new Set([
+  "bit.ly",
+  "t.co",
+  "tinyurl.com",
+  "goo.gl",
+  "ow.ly",
+  "is.gd",
+  "buff.ly",
+  "rebrand.ly",
+  "lnkd.in",
+]);
+
+// BLACKLISTED SITES - Add inappropriate/harmful sites here
+const BLACKLISTED_SITES = new Set([
+  // Adult/Porn sites (MindGeek and others) - ALL COUNTRY DOMAINS
+  "pornhub.com", "pornhub.ca", "pornhub.co.uk", "pornhub.de", "pornhub.fr", "pornhub.es", "pornhub.it", "pornhub.nl", "pornhub.pl", "pornhub.jp", "pornhub.ru",
+  "xvideos.com", "xvideos.es", "xvideos.red", "xvideos.gay", "xvideos.ca",
+  "xnxx.com", "xnxx.tv", "xnxx.live", "xnxx.ca",
+  "redtube.com", "redtube.net", "redtube.ca",
+  "youporn.com", "youporn.net", "youporn.ca",
+  "tube8.com", "tube8.net", "tube8.ca",
+  "spankbang.com", "spankbang.org", "spankbang.ca",
+  "xhamster.com", "xhamster.net", "xhamster.xxx", "xhamster.one", "xhamster.desi", "xhamster.ca",
+  "chaturbate.com", "chaturbate.net", "chaturbate.ca",
+  "cam4.com", "cam4.net", "cam4.ca",
+  "livejasmin.com", "livejasmin.net", "livejasmin.ca",
+  "stripchat.com", "stripchat.net", "stripchat.ca",
+  "onlyfans.com", "onlyfans.net", "onlyfans.ca",
+  "manyvids.com", "manyvids.net", "manyvids.ca",
+  "clips4sale.com", "clips4sale.net", "clips4sale.ca",
+  "nhentai.com", "nhentai.net", "nhentai.ca",
+  
+  // More adult sites
+  "brazzers.com", "realitykings.com", "mofos.com", "digitalplayground.com",
+  "twistys.com", "babes.com", "fakehub.com", "familystrokes.com",
+  "teamskeet.com", "naughtyamerica.com", "bangbros.com", "kink.com",
+  
+  // Gambling sites  
+  "bet365.com", "bet365.net", "bet365.es", "bet365.it",
+  "888casino.com", "888casino.net", "888.com",
+  "pokerstars.com", "pokerstars.net", "pokerstars.es",
+  "draftkings.com", "draftkings.net",
+  "fanduel.com", "fanduel.net",
+  "betway.com", "betway.net",
+  "unibet.com", "unibet.net",
+  
+  // Crypto/MLM scams (common ones)
+  "binance.com", "binance.net", "binance.us",
+  "coinbase.com", "coinbase.net",
+  "crypto.com", "crypto.net",
+  "kraken.com", "kraken.net",
+  "bitfinex.com", "bitfinex.net",
+  
+  // Social media that could be problematic for product links
+  "tiktok.com", "tik-tok.com",
+  "instagram.com", "instagr.am",
+  "facebook.com", "fb.com", "meta.com",
+  "twitter.com", "t.co",
+  "x.com",
+  "snapchat.com",
+  "discord.com", "discord.gg",
+  
+  // Sketchy marketplaces
+  "wish.com", "wish.net",
+  "aliexpress.com", "aliexpress.net",
+  "dhgate.com", "dhgate.net",
+  "alibaba.com", "alibaba.net",
+  
+  // File sharing/piracy
+  "mediafire.com", "mediafire.net",
+  "mega.nz", "mega.co.nz",
+  "rapidshare.com", "rapidshare.net",
+  "4shared.com", "4shared.net",
+  "dropbox.com", // Can be used for inappropriate content
+  "drive.google.com", // Google Drive links can be inappropriate
+  
+  // Dating/hookup sites
+  "tinder.com", "bumble.com", "match.com", "eharmony.com",
+  "adultfriendfinder.com", "ashley-madison.com", "seeking.com",
+  
+  // Add more as needed...
+]);
+
+const MAX_URL_LEN = 2048;
+
+export type LinkRisk = "known" | "unknown" | "blocked";
+
+const KNOWN_OK = new Set([
+  "sephora.com",
+  "sephora.ca",
+  "ulta.com",
+  "amazon.com",
+  "nyxcosmetics.com",
+  "glossier.com",
+  "target.com",
+  "walmart.com",
+  "cvs.com",
+  "walgreens.com",
+  "beautybay.com",
+  "lookfantastic.com",
+  "dermstore.com",
+  "skinstore.com",
+  "nordstrom.com",
+  "macys.com",
+  "sally.com",
+  "sallybeauty.com",
+  "beautylish.com",
+  "spacenk.com",
+  "cultbeauty.com",
+  "feelunique.com",
+  "boots.com",
+  "superdrug.com",
+  // add more over time; used only to reduce warning friction, not to block others
+]);
+
+function isIpHost(host: string): boolean {
+  // IPv4
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return true;
+  // IPv6 like [::1]
+  if (host.startsWith("[") && host.endsWith("]")) return true;
+  return false;
+}
+
+// ALSO: Let's improve the apex function to handle country codes better
+function apex(host: string): string {
+  const h = host.toLowerCase();
+  
+  // Remove www. prefix if present
+  const withoutWww = h.startsWith('www.') ? h.slice(4) : h;
+  
+  const parts = withoutWww.split(".");
+  if (parts.length < 2) return withoutWww;
+  
+  // For domains like example.co.uk, example.com.au, etc.
+  if (parts.length >= 3) {
+    const lastTwo = parts.slice(-2).join(".");
+    // Common two-part TLDs
+    const twoPartTlds = ["co.uk", "com.au", "co.nz", "co.za", "com.br", "co.jp", "co.kr"];
+    if (twoPartTlds.includes(lastTwo)) {
+      return parts.slice(-3).join(".");
+    }
+  }
+  
+  return parts.slice(-2).join(".");
+}
+
+export function validateHttpsUrl(
+  raw: string
+): { ok: true; url: URL; risk: LinkRisk } | { ok: false; reason: string } {
+  if (!raw) return { ok: false, reason: "Empty URL" };
+  if (raw.length > MAX_URL_LEN) return { ok: false, reason: "URL too long" };
+
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return { ok: false, reason: "Malformed URL" };
+  }
+
+  if (u.protocol !== "https:") return { ok: false, reason: "HTTPS required" };
+  if (!u.hostname) return { ok: false, reason: "Missing host" };
+  if (!u.hostname.includes(".")) return { ok: false, reason: "Host must include a TLD" };
+  if (u.username || u.password) return { ok: false, reason: "Credentials in URL not allowed" };
+  if (u.port) return { ok: false, reason: "Custom ports not allowed" };
+  if (isIpHost(u.hostname)) return { ok: false, reason: "IP addresses are not allowed" };
+
+  // classify
+  const hostApex = apex(u.hostname);
+  
+  // DEBUG LOGGING (remove these later)
+  console.log('Checking URL:', raw);
+  console.log('Hostname:', u.hostname);
+  console.log('Apex domain:', hostApex);
+  console.log('Is blacklisted?', BLACKLISTED_SITES.has(hostApex));
+  
+  // CHECK BLACKLIST FIRST
+  if (BLACKLISTED_SITES.has(hostApex)) {
+    console.log('BLOCKED:', hostApex);
+    return { ok: false, reason: "This site is not allowed" };
+  }
+  
+  if (SHORTENERS.has(hostApex)) return { ok: false, reason: "URL shorteners are not allowed" };
+
+  const risk: LinkRisk = KNOWN_OK.has(hostApex) ? "known" : "unknown";
+  return { ok: true, url: u, risk };
 }
 
 export function validateRoutine(input: RoutinePayload): ValidationResult {
   const MAX_TITLE_LEN = 100;
-  const MAX_DESC_LEN = 500;
-  const MAX_NOTES_LEN = 2000;
-
-  const MAX_TAGS = 5;
-  const MAX_TAG_LEN = 30;
+  const MAX_DESC_LEN = 750;
+  const MAX_NOTES_LEN = 1000;
 
   const MAX_PRODUCTS = 10;
   const MAX_LINKS = 3;
   const MAX_LINK_LEN = 500;
 
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+  // Steps validation limits
+  const MAX_STEPS = 15;
+  const MAX_STEP_BODY_LEN = 500;
+
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
   // --- Required fields ---
   if (!input.title.trim()) return { ok: false, msg: "Title is required." };
   if (!input.description.trim()) return { ok: false, msg: "Description is required." };
   if (!input.notes.trim()) return { ok: false, msg: "Notes are required." };
-  if (!input.tagsRaw.trim()) return { ok: false, msg: "Tags are required." };
   if (!input.imagePath) return { ok: false, msg: "Please upload an image." };
+
+  // --- Profanity check (early check before processing) - FIXED: renamed variables ---
+  const steps = input.steps || [];
+  const products = input.products || [];
+  
+  console.log('Raw steps data:', steps); // Debug log
+  console.log('Raw products data:', products); // Debug log
+  
+  // Extract step bodies and product names with better filtering
+  const stepBodies = steps
+    .map((s) => s?.body?.trim()) // Safely access body and trim
+    .filter((body) => body && body.length > 0); // Only include non-empty bodies
+    
+  const profanityProductNames = products // RENAMED: to avoid conflict
+    .map((p) => p?.name?.trim()) // Safely access name and trim
+    .filter((name) => name && name.length > 0); // Only include non-empty names
+  
+  console.log('Extracted step bodies:', stepBodies); // Debug log
+  console.log('Extracted product names:', profanityProductNames); // Debug log
+  
+  const profanityCheck = checkContentProfanity({
+    title: input.title,
+    description: input.description,
+    notes: input.notes,
+    productNames: profanityProductNames, // UPDATED: use renamed variable
+    stepBodies: stepBodies,
+  });
+
+  if (profanityCheck.hasProfanity) {
+    return {
+      ok: false,
+      msg: `Content contains inappropriate language in ${profanityCheck.field}. Please revise and try again.`,
+    };
+  }
 
   // --- Length limits ---
   if (input.title.length > MAX_TITLE_LEN) {
@@ -51,51 +276,54 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
     return { ok: false, msg: `Notes are too long (max ${MAX_NOTES_LEN} characters).` };
   }
 
-  // --- Tag processing ---
-  const tagList = input.tagsRaw
-    .split(",")
-    .map(t => t.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (tagList.length > MAX_TAGS) {
-    return { ok: false, msg: `Too many tags (max ${MAX_TAGS}).` };
-  }
-
-  const tagSet = new Set(tagList);
-  if (tagSet.size !== tagList.length) {
-    return { ok: false, msg: "Tags must be unique." };
-  }
-
-  for (const tag of tagList) {
-    if (tag.length > MAX_TAG_LEN) {
-      return { ok: false, msg: `Tag "${tag}" is too long (max ${MAX_TAG_LEN} characters).` };
-    }
-  }
-
   // --- Image size check ---
   if (input.imageFile && input.imageFile.size > MAX_IMAGE_SIZE) {
     return { ok: false, msg: "Image is too large (max 5MB)." };
   }
 
+  // --- Steps validation ---
+  if (steps.length > MAX_STEPS) {
+    return { ok: false, msg: `Maximum ${MAX_STEPS} steps allowed.` };
+  }
+
+  // Clean and validate steps
+  const cleanedSteps: Step[] = steps
+    .map((step, index) => ({
+      step_no: index + 1, // Renumber steps to be consecutive
+      body: step.body.trim(),
+    }))
+    .filter((step) => step.body.length > 0); // Remove empty steps
+
+  // Validate individual step length
+  for (const step of cleanedSteps) {
+    if (step.body.length > MAX_STEP_BODY_LEN) {
+      return {
+        ok: false,
+        msg: `Step ${step.step_no} is too long (max ${MAX_STEP_BODY_LEN} characters).`,
+      };
+    }
+  }
+
   // --- Product limits ---
-  if (input.products.length > MAX_PRODUCTS) {
+  if (products.length > MAX_PRODUCTS) {
     return { ok: false, msg: `Maximum ${MAX_PRODUCTS} products allowed.` };
   }
 
   // --- Clean + validate products ---
-  const cleanedProducts: Product[] = input.products
-    .map(p => ({
+  const cleanedProducts: Product[] = products
+    .map((p) => ({
       name: p.name.trim(),
-      links: p.links.map(l => l.trim()).filter(Boolean),
+      links: p.links.map((l) => l.trim()).filter(Boolean),
     }))
-    .filter(p => p.name || p.links.length); // drop fully empty ones
+    .filter((p) => p.name || p.links.length); // drop fully empty ones
 
   // Ensure at least one product has something
   if (cleanedProducts.length === 0) {
     return { ok: false, msg: "Please add at least one product with content." };
   }
 
-  const productNames = cleanedProducts.map(p => p.name.toLowerCase());
+  // KEPT ORIGINAL: This productNames variable is different (for duplicate checking)
+  const productNames = cleanedProducts.map((p) => p.name.toLowerCase());
   if (new Set(productNames).size !== productNames.length) {
     return { ok: false, msg: "Each product must have a unique name." };
   }
@@ -123,14 +351,22 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
           msg: `A link in "${p.name || "(unnamed)"}" is too long (max ${MAX_LINK_LEN} characters).`,
         };
       }
-    }
-  }
 
+      const urlValidation = validateHttpsUrl(link);
+      if (!urlValidation.ok) {
+        return {
+          ok: false,
+          msg: `Invalid URL in "${p.name || "(unnamed)"}": ${urlValidation.reason}`,
+        };
+      }
+    }
+
+  }
   return {
     ok: true,
     data: {
       cleanedProducts,
-      cleanedTags: tagList,
+      cleanedSteps,
     },
   };
 }

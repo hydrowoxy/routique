@@ -1,18 +1,20 @@
-'use client'
+'use client';
+
+import Button from '@/components/Button/Button';
 
 type Props = {
-  routineId: string
-}
+  routineId: string;
+};
 
 export default function EditButton({ routineId }: Props) {
   return (
-    <button
+    <Button
       type="button"
       onClick={() => {
         window.location.href = `/routine/${routineId}/edit`;
       }}
     >
       Edit
-    </button>
-  )
+    </Button>
+  );
 }

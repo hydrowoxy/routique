@@ -324,7 +324,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div style={{ 
-            backgroundColor: "var(--muted)", 
+            backgroundColor: "var(--background)", 
             padding: 16, 
             borderRadius: 8,
             border: "1px solid #dc2626"
@@ -346,7 +346,7 @@ export default function SettingsPage() {
               disabled={deleting}
               style={{ marginBottom: 12 }}
             />
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, paddingTop: 20 }}>
               <Button
                 onClick={confirmDeleteAccount}
                 disabled={deleting || deleteConfirmText.toLowerCase() !== "delete my account"}

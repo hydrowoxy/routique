@@ -28,16 +28,16 @@ export default function Explore() {
   useEffect(() => {
     if (authLoading) return;
 
-    console.log('[Explore] Starting data fetch...', { authLoading });
+    //console.log('[Explore] Starting data fetch...', { authLoading });
     const startTime = Date.now();
     
     let isMounted = true;
 
     const fetchRoutines = async () => {
-      console.log('[Explore] fetchRoutines called, isMounted:', isMounted);
+      //console.log('[Explore] fetchRoutines called, isMounted:', isMounted);
       
       try {
-        console.log('[Explore] Making Supabase request...');
+        //console.log('[Explore] Making Supabase request...');
         
         const { data, error } = await supabase
           .from("routines")
@@ -55,31 +55,31 @@ export default function Explore() {
             )
           `);
 
-        console.log('[Explore] Supabase response received:', { 
-          dataLength: data?.length, 
-          error: error?.message,
-          isMounted 
-        });
+        //console.log('[Explore] Supabase response received:', { 
+        //  dataLength: data?.length, 
+        //  error: error?.message,
+        //  isMounted 
+        //});
 
         if (error) {
           console.error("[Explore] Failed to fetch routines:", error);
           if (isMounted) {
-            console.log('[Explore] Setting empty routines due to error');
+            //console.log('[Explore] Setting empty routines due to error');
             setRoutines([]);
             setLoading(false);
           }
         } else {
-          console.log('[Explore] Data fetch completed in:', Date.now() - startTime, 'ms');
+          //console.log('[Explore] Data fetch completed in:', Date.now() - startTime, 'ms');
           if (isMounted) {
-            console.log('[Explore] Setting routines data:', data?.length, 'items');
+            //console.log('[Explore] Setting routines data:', data?.length, 'items');
             setRoutines(data ?? []);
             setLoading(false);
           } else {
-            console.log('[Explore] Component unmounted, skipping state update');
+            //console.log('[Explore] Component unmounted, skipping state update');
           }
         }
       } catch (err) {
-        console.log('[Explore] Catch block hit:', err);
+        //console.log('[Explore] Catch block hit:', err);
         if (isMounted) {
           console.error("[Explore] Unexpected error:", err);
           setRoutines([]);
@@ -91,7 +91,7 @@ export default function Explore() {
     fetchRoutines();
 
     return () => {
-      console.log('[Explore] Cleanup function called');
+      //console.log('[Explore] Cleanup function called');
       isMounted = false;
     };
   }, [authLoading]); 

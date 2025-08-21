@@ -28,7 +28,7 @@ export async function cleanupOrphanedImages() {
 
       if (deleteError) throw deleteError;
       
-      console.log(`Cleaned up ${orphanedFiles.length} orphaned routine images`);
+      //console.log(`Cleaned up ${orphanedFiles.length} orphaned routine images`);
     }
 
     return { success: true, cleaned: orphanedFiles.length };

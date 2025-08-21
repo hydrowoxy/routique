@@ -56,7 +56,7 @@ export default function SettingsPage() {
       return;
     }
 
-    console.log('[Settings] Starting profile fetch...');
+    //console.log('[Settings] Starting profile fetch...');
     const startTime = Date.now();
     
     let isMounted = true;
@@ -85,7 +85,7 @@ export default function SettingsPage() {
           return;
         }
 
-        console.log('[Settings] Profile fetch completed in:', Date.now() - startTime, 'ms');
+        //console.log('[Settings] Profile fetch completed in:', Date.now() - startTime, 'ms');
 
         if (!isMounted) return; // Component unmounted
 

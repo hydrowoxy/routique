@@ -209,32 +209,32 @@ export function checkContentProfanity(content: {
   stepBodies?: string[];
 }): { hasProfanity: boolean; field?: string } {
   
-  console.log('Checking profanity for:', content); // Debug log
+  //console.log('Checking profanity for:', content); 
   
   // Check title
   if (content.title && (containsProfanity(content.title) || containsInappropriateContent(content.title))) {
-    console.log('Profanity found in title:', content.title);
+    //console.log('Profanity found in title:', content.title);
     return { hasProfanity: true, field: 'title' };
   }
   
   // Check description
   if (content.description && (containsProfanity(content.description) || containsInappropriateContent(content.description))) {
-    console.log('Profanity found in description:', content.description);
+    //console.log('Profanity found in description:', content.description);
     return { hasProfanity: true, field: 'description' };
   }
   
   // Check notes
   if (content.notes && (containsProfanity(content.notes) || containsInappropriateContent(content.notes))) {
-    console.log('Profanity found in notes:', content.notes);
+    //console.log('Profanity found in notes:', content.notes);
     return { hasProfanity: true, field: 'notes' };
   }
   
   // Check product names
   if (content.productNames) {
-    console.log('Checking product names:', content.productNames);
+    //console.log('Checking product names:', content.productNames);
     for (const name of content.productNames) {
       if (containsProfanity(name) || containsInappropriateContent(name)) {
-        console.log('Profanity found in product name:', name);
+        //console.log('Profanity found in product name:', name);
         return { hasProfanity: true, field: 'product name' };
       }
     }
@@ -242,16 +242,16 @@ export function checkContentProfanity(content: {
   
   // Check step descriptions
   if (content.stepBodies) {
-    console.log('Checking step bodies:', content.stepBodies);
+    //console.log('Checking step bodies:', content.stepBodies);
     for (const body of content.stepBodies) {
-      console.log('Checking step body:', body);
+      //console.log('Checking step body:', body);
       if (containsProfanity(body) || containsInappropriateContent(body)) {
-        console.log('Profanity found in step description:', body);
+        //console.log('Profanity found in step description:', body);
         return { hasProfanity: true, field: 'step description' };
       }
     }
   }
   
-  console.log('No profanity found');
+  //console.log('No profanity found');
   return { hasProfanity: false };
 }

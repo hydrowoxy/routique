@@ -1,5 +1,7 @@
 "use client";
 
+// this file is a fucking mess
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -11,6 +13,7 @@ import AccentButton from "@/components/AccentButton/AccentButton";
 import Button from "@/components/Button/Button";
 import Input from "@/components/Input/Input";
 import Link from "next/link"; 
+import Loading from "@/components/Loading/Loading";
 
 type ProfileSubset = {
   display_name: string | null;
@@ -53,44 +56,73 @@ export default function SettingsPage() {
       return;
     }
 
-    (async () => {
+    console.log('[Settings] Starting profile fetch...');
+    const startTime = Date.now();
+    
+    // Create abort controller for cleanup
+    const controller = new AbortController();
+    let isMounted = true;
+
+    const fetchProfile = async () => {
       setProfileLoading(true);
 
-      const authUsername =
-        session?.user?.user_metadata?.username ??
-        session?.user?.email?.split("@")[0] ??
-        "Unknown";
-      setUsername(authUsername);
+      try {
+        const authUsername =
+          session?.user?.user_metadata?.username ??
+          session?.user?.email?.split("@")[0] ??
+          "Unknown";
+        
+        if (isMounted) setUsername(authUsername);
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("display_name, avatar_path")
-        .eq("id", uid)
-        .single();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("display_name, avatar_path")
+          .eq("id", uid)
+          .single()
+          .abortSignal(controller.signal);
 
-      if (error) {
-        console.error("[Settings] fetchProfile error:", error.message);
+        if (error) {
+          console.error("[Settings] fetchProfile error:", error.message);
+          if (isMounted) setProfileLoading(false);
+          return;
+        }
+
+        console.log('[Settings] Profile fetch completed in:', Date.now() - startTime, 'ms');
+
+        if (!isMounted) return; // Component unmounted
+
+        const row = data as ProfileSubset;
+        setDisplayName(row.display_name ?? "");
+        originalAvatarKeyRef.current = row.avatar_path ?? null;
+
+        if (row.avatar_path) {
+          const { data: urlData } = supabase.storage
+            .from("avatars")
+            .getPublicUrl(row.avatar_path);
+          setAvatarUrl(urlData?.publicUrl || "");
+        } else {
+          setAvatarUrl("");
+        }
+
+        setNewAvatarKey(undefined);
         setProfileLoading(false);
-        return;
+
+      } catch (err) {
+        if (err.name !== 'AbortError' && isMounted) {
+          console.error("[Settings] Unexpected error:", err);
+          setProfileLoading(false);
+        }
       }
+    };
 
-      const row = data as ProfileSubset;
-      setDisplayName(row.display_name ?? "");
-      originalAvatarKeyRef.current = row.avatar_path ?? null;
+    fetchProfile();
 
-      if (row.avatar_path) {
-        const { data: urlData } = supabase.storage
-          .from("avatars")
-          .getPublicUrl(row.avatar_path);
-        setAvatarUrl(urlData?.publicUrl || "");
-      } else {
-        setAvatarUrl("");
-      }
-
-      setNewAvatarKey(undefined);
-      setProfileLoading(false);
-    })();
-  }, [authLoading, uid]);
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [authLoading, uid, router, session?.user?.user_metadata?.username, session?.user?.email]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -187,7 +219,6 @@ export default function SettingsPage() {
     else console.error("[Settings] logout failed:", error.message);
   }
 
-  // NEW: Account deletion functions
   function handleDeleteAccount() {
     setShowDeleteConfirm(true);
     setDeleteConfirmText("");
@@ -247,6 +278,23 @@ export default function SettingsPage() {
     />
   );
 
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  if (!uid) {
+    return (
+      <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
+        <h1 style={{ fontWeight: 800, fontSize: 32, paddingTop: 20, marginBottom: 18 }}>
+          Settings
+        </h1>
+        <div style={{ color: "var(--subtext)", padding: "40px 0" }}>
+          Please log in to access settings.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 20px 80px" }}>
       <h1 style={{ fontWeight: 800, fontSize: 32, paddingTop: 20, marginBottom: 18 }}>
@@ -299,7 +347,6 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      {/* NEW: Account Deletion Section */}
       <div style={{ marginTop: 40, padding: "20px 0", borderTop: "1px solid var(--border)" }}>
         <div style={{ marginBottom: 16, fontWeight: 700, color: "var(--text)" }}>
           Danger Zone

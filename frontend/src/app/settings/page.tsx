@@ -59,8 +59,6 @@ export default function SettingsPage() {
     console.log('[Settings] Starting profile fetch...');
     const startTime = Date.now();
     
-    // Create abort controller for cleanup
-    const controller = new AbortController();
     let isMounted = true;
 
     const fetchProfile = async () => {
@@ -74,12 +72,12 @@ export default function SettingsPage() {
         
         if (isMounted) setUsername(authUsername);
 
+        // Simple Supabase call without abort signal
         const { data, error } = await supabase
           .from("profiles")
           .select("display_name, avatar_path")
           .eq("id", uid)
-          .single()
-          .abortSignal(controller.signal);
+          .single();
 
         if (error) {
           console.error("[Settings] fetchProfile error:", error.message);
@@ -108,7 +106,7 @@ export default function SettingsPage() {
         setProfileLoading(false);
 
       } catch (err) {
-        if (err.name !== 'AbortError' && isMounted) {
+        if (isMounted) {
           console.error("[Settings] Unexpected error:", err);
           setProfileLoading(false);
         }
@@ -120,7 +118,6 @@ export default function SettingsPage() {
     // Cleanup function
     return () => {
       isMounted = false;
-      controller.abort();
     };
   }, [authLoading, uid, router, session?.user?.user_metadata?.username, session?.user?.email]);
 

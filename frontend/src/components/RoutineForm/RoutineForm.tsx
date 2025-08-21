@@ -20,9 +20,6 @@ import { validateRoutine } from "@/utils/validateRoutine";
 import styles from "./RoutineForm.module.scss";
 import AccentButton from "../AccentButton/AccentButton";
 
-type Product = { name: string; links: string[] };
-type Step = { step_no: number; body: string };
-
 export default function RoutineForm() {
   const { session, loading: authLoading } = useAuth();
   const { showError, showSuccess } = useToast(); 
@@ -31,8 +28,8 @@ export default function RoutineForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [notes, setNotes] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [steps, setSteps] = useState<Step[]>([]); 
+  const [products, setProducts] = useState([{ name: "", links: [""] }]);
+  const [steps, setSteps] = useState([{ step_no: 1, body: "" }]); 
   const [category, setCategory] = useState(""); 
 
   const [imageKey, setImageKey] = useState("");
@@ -62,6 +59,7 @@ export default function RoutineForm() {
       notes,
       imagePath: imageKey,
       products,
+      steps, 
     });
 
     if (!check.ok) {
@@ -69,65 +67,65 @@ export default function RoutineForm() {
       return;
     }
 
-    const { cleanedProducts } = check.data!;
     setSaving(true);
 
-    // Create the routine first
-    const routineId = crypto.randomUUID();
-    const { error: routineError } = await supabase.from("routines").insert({
-      id: routineId,
-      user_id: session.user.id,
-      title: title.trim(),
-      description: description.trim(),
-      image_path: imageKey,
-      notes: notes.trim(),
-      products: cleanedProducts,
-      category, 
-      view_count: 0,
-      favourite_count: 0,
-    });
+    try {
+      // Insert routine
+      const { data: routineData, error: routineError } = await supabase
+        .from("routines")
+        .insert({
+          user_id: session.user.id,
+          title: title.trim(),
+          description: description.trim(),
+          notes: notes.trim(),
+          category,
+          image_path: imageKey,
+        })
+        .select("id")
+        .single();
 
-    if (routineError) {
-      setSaving(false);
-      showError(routineError.message);
-      return;
-    }
+      if (routineError) throw routineError;
 
-    // If there are steps, insert them
-    if (steps.length > 0) {
-      const stepsToInsert = steps.map(step => ({
-        routine_id: routineId,
-        step_no: step.step_no,
-        body: step.body.trim(),
-      }));
+      const routineId = routineData.id;
 
-      const { error: stepsError } = await supabase
-        .from("routine_steps")
-        .insert(stepsToInsert);
+      // Insert products
+      if (check.data!.cleanedProducts.length > 0) {
+        const productsToInsert = check.data!.cleanedProducts.map((p) => ({
+          routine_id: routineId,
+          name: p.name,
+          links: p.links,
+        }));
 
-      if (stepsError) {
-        setSaving(false);
-        showError(`Routine created but steps failed to save: ${stepsError.message}`);
-        return;
+        const { error: productsError } = await supabase
+          .from("products")
+          .insert(productsToInsert);
+
+        if (productsError) throw productsError;
       }
-    }
 
-    setSaving(false);
-    showSuccess("Routine created successfully! Redirecting...");
-    
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setNotes("");
-    setProducts([]);
-    setSteps([]); // Reset steps
-    setCategory(""); 
-    setImageKey("");
-    setPreviewUrl("");
+      // Insert steps
+      if (check.data!.cleanedSteps.length > 0) {
+        const stepsToInsert = check.data!.cleanedSteps.map((s) => ({
+          routine_id: routineId,
+          step_no: s.step_no,
+          body: s.body,
+        }));
 
-    const username = session.user.user_metadata?.username;
-    if (username) {
-      setTimeout(() => router.push(`/${username}`), 1000);
+        const { error: stepsError } = await supabase
+          .from("steps")
+          .insert(stepsToInsert);
+
+        if (stepsError) throw stepsError;
+      }
+
+      showSuccess("Routine created successfully!");
+      router.push(`/routine/${routineId}`);
+    } catch (err) {
+      console.error("Error creating routine:", err);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      showError(`Failed to create routine: ${msg}`);
+    } finally {
+      setSaving(false);
     }
   };
 

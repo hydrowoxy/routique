@@ -324,7 +324,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div style={{ 
-            backgroundColor: "var(--background)", 
+            backgroundColor: "var(--muted)", 
             padding: 16, 
             borderRadius: 8,
             border: "1px solid #dc2626"
@@ -339,14 +339,15 @@ export default function SettingsPage() {
             <div style={{ marginBottom: 12, fontSize: 12, color: "var(--subtext)" }}>
               Type &quot;delete my account&quot; to confirm:
             </div>
-            <Input
-              value={deleteConfirmText}
-              onChange={setDeleteConfirmText}
-              placeholder="delete my account"
-              disabled={deleting}
-              style={{ marginBottom: 12 }}
-            />
-            <div style={{ display: "flex", gap: 8, paddingTop: 20 }}>
+            <div style={{ marginBottom: 12 }}>
+              <Input
+                value={deleteConfirmText}
+                onChange={setDeleteConfirmText}
+                placeholder="delete my account"
+                disabled={deleting}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
               <Button
                 onClick={confirmDeleteAccount}
                 disabled={deleting || deleteConfirmText.toLowerCase() !== "delete my account"}

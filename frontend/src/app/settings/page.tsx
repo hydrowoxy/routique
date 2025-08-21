@@ -36,6 +36,11 @@ export default function SettingsPage() {
 
   const [profileLoading, setProfileLoading] = useState(true);
 
+  // Account deletion state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   const COOLDOWN_MS = 3000;
   const TIMEOUT_MS = 16000;
 
@@ -182,6 +187,55 @@ export default function SettingsPage() {
     else console.error("[Settings] logout failed:", error.message);
   }
 
+  // NEW: Account deletion functions
+  function handleDeleteAccount() {
+    setShowDeleteConfirm(true);
+    setDeleteConfirmText("");
+  }
+
+  function cancelDelete() {
+    setShowDeleteConfirm(false);
+    setDeleteConfirmText("");
+  }
+
+  async function confirmDeleteAccount() {
+    if (!uid || deleting) return;
+    
+    if (deleteConfirmText.toLowerCase() !== "delete my account") {
+      showError('Please type "delete my account" to confirm.');
+      return;
+    }
+
+    setDeleting(true);
+
+    try {
+      // Delete from profiles table (should cascade to routines, likes, etc.)
+      const { error: deleteError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", uid);
+
+      if (deleteError) {
+        console.error("[Settings] delete profile error:", deleteError.message);
+        showError(`Failed to delete account: ${deleteError.message}`);
+        setDeleting(false);
+        return;
+      }
+
+      // Sign out the user
+      await supabase.auth.signOut();
+      
+      // Redirect to home page
+      router.push("/?message=account-deleted");
+      
+    } catch (err) {
+      console.error("[Settings] delete account error:", err);
+      const msg = err instanceof Error ? err.message : "Unknown error occurred";
+      showError(`Failed to delete account: ${msg}`);
+      setDeleting(false);
+    }
+  }
+
   const avatarSkeleton = (
     <div
       style={{
@@ -245,6 +299,73 @@ export default function SettingsPage() {
         </Button>
       </div>
 
+      {/* NEW: Account Deletion Section */}
+      <div style={{ marginTop: 40, padding: "20px 0", borderTop: "1px solid var(--border)" }}>
+        <div style={{ marginBottom: 16, fontWeight: 700, color: "var(--text)" }}>
+          Danger Zone
+        </div>
+        
+        {!showDeleteConfirm ? (
+          <div>
+            <div style={{ color: "var(--subtext)", fontSize: 12, marginBottom: 12 }}>
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </div>
+            <Button 
+              onClick={handleDeleteAccount}
+              disabled={updating || deleting}
+              style={{ 
+                backgroundColor: "#dc2626", 
+                color: "white",
+                border: "1px solid #dc2626"
+              }}
+            >
+              Delete Account
+            </Button>
+          </div>
+        ) : (
+          <div style={{ 
+            backgroundColor: "var(--muted)", 
+            padding: 16, 
+            borderRadius: 8,
+            border: "1px solid #dc2626"
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: 12, color: "#dc2626" }}>
+              ⚠️ Delete Account Confirmation
+            </div>
+            <div style={{ color: "var(--text)", fontSize: 14, marginBottom: 16 }}>
+              This will permanently delete your account, all your routines, likes, and other data. 
+              This action is <strong>irreversible</strong>.
+            </div>
+            <div style={{ marginBottom: 12, fontSize: 12, color: "var(--subtext)" }}>
+              Type &quot;delete my account&quot; to confirm:
+            </div>
+            <Input
+              value={deleteConfirmText}
+              onChange={setDeleteConfirmText}
+              placeholder="delete my account"
+              disabled={deleting}
+              style={{ marginBottom: 12 }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <Button
+                onClick={confirmDeleteAccount}
+                disabled={deleting || deleteConfirmText.toLowerCase() !== "delete my account"}
+                style={{ 
+                  backgroundColor: "#dc2626", 
+                  color: "white",
+                  border: "1px solid #dc2626"
+                }}
+              >
+                {deleting ? "Deleting..." : "Confirm Delete"}
+              </Button>
+              <Button onClick={cancelDelete} disabled={deleting}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div style={{ marginTop: 24, textAlign: "left", display: "flex", flexDirection: "column", gap: 8 }}>
         <Link 
           href="/terms" 
@@ -269,9 +390,7 @@ export default function SettingsPage() {
             routique.team@gmail.com
           </a>
         </div>
-
       </div>
-
     </div>
   );
 }

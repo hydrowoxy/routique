@@ -37,45 +37,71 @@ const SHORTENERS = new Set([
 
 // BLACKLISTED SITES - Add inappropriate/harmful sites here
 const BLACKLISTED_SITES = new Set([
-  // Adult/Porn sites (MindGeek and others)
-  "pornhub.com",
-  "xvideos.com",
-  "xnxx.com",
-  "redtube.com",
-  "youporn.com",
-  "tube8.com",
-  "spankbang.com",
-  "xhamster.com",
-  "chaturbate.com",
-  "cam4.com",
-  "livejasmin.com",
-  "stripchat.com",
-  "onlyfans.com",
-  "manyvids.com",
-  "clips4sale.com",
+  // Adult/Porn sites (MindGeek and others) - ALL COUNTRY DOMAINS
+  "pornhub.com", "pornhub.ca", "pornhub.co.uk", "pornhub.de", "pornhub.fr", "pornhub.es", "pornhub.it", "pornhub.nl", "pornhub.pl", "pornhub.jp", "pornhub.ru",
+  "xvideos.com", "xvideos.es", "xvideos.red", "xvideos.gay", "xvideos.ca",
+  "xnxx.com", "xnxx.tv", "xnxx.live", "xnxx.ca",
+  "redtube.com", "redtube.net", "redtube.ca",
+  "youporn.com", "youporn.net", "youporn.ca",
+  "tube8.com", "tube8.net", "tube8.ca",
+  "spankbang.com", "spankbang.org", "spankbang.ca",
+  "xhamster.com", "xhamster.net", "xhamster.xxx", "xhamster.one", "xhamster.desi", "xhamster.ca",
+  "chaturbate.com", "chaturbate.net", "chaturbate.ca",
+  "cam4.com", "cam4.net", "cam4.ca",
+  "livejasmin.com", "livejasmin.net", "livejasmin.ca",
+  "stripchat.com", "stripchat.net", "stripchat.ca",
+  "onlyfans.com", "onlyfans.net", "onlyfans.ca",
+  "manyvids.com", "manyvids.net", "manyvids.ca",
+  "clips4sale.com", "clips4sale.net", "clips4sale.ca",
+  "nhentai.com", "nhentai.net", "nhentai.ca",
   
-  // Gambling sites
-  "bet365.com",
-  "888casino.com",
-  "pokerstars.com",
-  "draftkings.com",
-  "fanduel.com",
+  // More adult sites
+  "brazzers.com", "realitykings.com", "mofos.com", "digitalplayground.com",
+  "twistys.com", "babes.com", "fakehub.com", "familystrokes.com",
+  "teamskeet.com", "naughtyamerica.com", "bangbros.com", "kink.com",
+  
+  // Gambling sites  
+  "bet365.com", "bet365.net", "bet365.es", "bet365.it",
+  "888casino.com", "888casino.net", "888.com",
+  "pokerstars.com", "pokerstars.net", "pokerstars.es",
+  "draftkings.com", "draftkings.net",
+  "fanduel.com", "fanduel.net",
+  "betway.com", "betway.net",
+  "unibet.com", "unibet.net",
   
   // Crypto/MLM scams (common ones)
-  "binance.com",
-  "coinbase.com",
-  "crypto.com",
+  "binance.com", "binance.net", "binance.us",
+  "coinbase.com", "coinbase.net",
+  "crypto.com", "crypto.net",
+  "kraken.com", "kraken.net",
+  "bitfinex.com", "bitfinex.net",
+  
+  // Social media that could be problematic for product links
+  "tiktok.com", "tik-tok.com",
+  "instagram.com", "instagr.am",
+  "facebook.com", "fb.com", "meta.com",
+  "twitter.com", "t.co",
+  "x.com",
+  "snapchat.com",
+  "discord.com", "discord.gg",
   
   // Sketchy marketplaces
-  "wish.com",
-  "aliexpress.com",
-  "dhgate.com",
+  "wish.com", "wish.net",
+  "aliexpress.com", "aliexpress.net",
+  "dhgate.com", "dhgate.net",
+  "alibaba.com", "alibaba.net",
   
   // File sharing/piracy
-  "mediafire.com",
-  "mega.nz",
-  "rapidshare.com",
-  "4shared.com",
+  "mediafire.com", "mediafire.net",
+  "mega.nz", "mega.co.nz",
+  "rapidshare.com", "rapidshare.net",
+  "4shared.com", "4shared.net",
+  "dropbox.com", // Can be used for inappropriate content
+  "drive.google.com", // Google Drive links can be inappropriate
+  
+  // Dating/hookup sites
+  "tinder.com", "bumble.com", "match.com", "eharmony.com",
+  "adultfriendfinder.com", "ashley-madison.com", "seeking.com",
   
   // Add more as needed...
 ]);
@@ -120,10 +146,26 @@ function isIpHost(host: string): boolean {
   return false;
 }
 
+// ALSO: Let's improve the apex function to handle country codes better
 function apex(host: string): string {
   const h = host.toLowerCase();
-  const parts = h.split(".");
-  if (parts.length < 2) return h;
+  
+  // Remove www. prefix if present
+  const withoutWww = h.startsWith('www.') ? h.slice(4) : h;
+  
+  const parts = withoutWww.split(".");
+  if (parts.length < 2) return withoutWww;
+  
+  // For domains like example.co.uk, example.com.au, etc.
+  if (parts.length >= 3) {
+    const lastTwo = parts.slice(-2).join(".");
+    // Common two-part TLDs
+    const twoPartTlds = ["co.uk", "com.au", "co.nz", "co.za", "com.br", "co.jp", "co.kr"];
+    if (twoPartTlds.includes(lastTwo)) {
+      return parts.slice(-3).join(".");
+    }
+  }
+  
   return parts.slice(-2).join(".");
 }
 
@@ -150,8 +192,15 @@ export function validateHttpsUrl(
   // classify
   const hostApex = apex(u.hostname);
   
+  // DEBUG LOGGING (remove these later)
+  console.log('Checking URL:', raw);
+  console.log('Hostname:', u.hostname);
+  console.log('Apex domain:', hostApex);
+  console.log('Is blacklisted?', BLACKLISTED_SITES.has(hostApex));
+  
   // CHECK BLACKLIST FIRST
   if (BLACKLISTED_SITES.has(hostApex)) {
+    console.log('BLOCKED:', hostApex);
     return { ok: false, reason: "This site is not allowed" };
   }
   
@@ -311,8 +360,8 @@ export function validateRoutine(input: RoutinePayload): ValidationResult {
         };
       }
     }
-  }
 
+  }
   return {
     ok: true,
     data: {

@@ -15,6 +15,11 @@ body {
   font-family: var(--font-onest), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  // Add left padding for desktop navbar
+  @media (min-width: 1024px) {
+    padding-left: 80px; 
+  }
 }
 
 html, body, * {

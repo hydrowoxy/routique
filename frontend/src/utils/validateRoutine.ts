@@ -107,8 +107,8 @@ export function validateHttpsUrl(
 
 export function validateRoutine(input: RoutinePayload): ValidationResult {
   const MAX_TITLE_LEN = 100;
-  const MAX_DESC_LEN = 500;
-  const MAX_NOTES_LEN = 2000;
+  const MAX_DESC_LEN = 750;
+  const MAX_NOTES_LEN = 1000;
 
   const MAX_PRODUCTS = 10;
   const MAX_LINKS = 3;

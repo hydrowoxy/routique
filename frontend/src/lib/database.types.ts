@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -52,27 +52,71 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_path: string | null
           created_at: string
           display_name: string
           email: string
           id: string
+          status: Database["public"]["Enums"]["user_status"]
           username: string
         }
         Insert: {
+          avatar_path?: string | null
           created_at?: string
           display_name: string
           email: string
           id?: string
+          status?: Database["public"]["Enums"]["user_status"]
           username: string
         }
         Update: {
+          avatar_path?: string | null
           created_at?: string
           display_name?: string
           email?: string
           id?: string
+          status?: Database["public"]["Enums"]["user_status"]
           username?: string
         }
         Relationships: []
+      }
+      routine_steps: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          media_path: string | null
+          routine_id: string
+          step_no: number
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          media_path?: string | null
+          routine_id: string
+          step_no: number
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          media_path?: string | null
+          routine_id?: string
+          step_no?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_steps_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       routines: {
         Row: {
@@ -84,6 +128,7 @@ export type Database = {
           image_path: string
           notes: string | null
           products: Json
+          tags: string[]
           title: string
           user_id: string
           view_count: number
@@ -97,6 +142,7 @@ export type Database = {
           image_path: string
           notes?: string | null
           products: Json
+          tags?: string[]
           title: string
           user_id: string
           view_count?: number
@@ -110,6 +156,7 @@ export type Database = {
           image_path?: string
           notes?: string | null
           products?: Json
+          tags?: string[]
           title?: string
           user_id?: string
           view_count?: number
@@ -129,6 +176,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_ban_user: {
+        Args: { reason?: string; target_uuid: string; until_ts?: string }
+        Returns: undefined
+      }
+      admin_unban_user: {
+        Args: { target_uuid: string }
+        Returns: undefined
+      }
       delete_unverified_users: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -139,7 +194,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_status: "active" | "suspended" | "banned"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -266,6 +321,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_status: ["active", "suspended", "banned"],
+    },
   },
 } as const

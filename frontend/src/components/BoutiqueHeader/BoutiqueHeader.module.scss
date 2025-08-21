@@ -30,7 +30,7 @@
 }
 
 .count {
-  @include fonts.text-small;
+  @include fonts.text-body;
   color: var(--subtext);
   white-space: nowrap;
 }

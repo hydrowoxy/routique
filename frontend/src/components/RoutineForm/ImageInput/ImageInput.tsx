@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { supabase } from "@/lib/supabase";
 import { deleteImage } from "@/utils/deleteImage";
@@ -8,11 +8,13 @@ import styles from "./ImageInput.module.scss";
 
 type Props = {
   onUpload: (key: string) => void;
+  onImageSelect: (file: File | null) => void; // NEW: For storing the file locally
   existingUrl?: string | null;
   disabled?: boolean;
   maxSize?: number;
   /** Optional: override box size, e.g. "140px" */
   sizePx?: number;
+  uploadMode?: "immediate" | "deferred"; // NEW: Control when to upload
 };
 
 const SIZE_PX = 512;
@@ -62,137 +64,216 @@ async function safeDeleteImage(key: string) {
   }
 }
 
-export default function ImageInput({
-  onUpload,
-  existingUrl = null,
-  disabled = false,
-  maxSize = 10 * 1024 * 1024,
-  sizePx,
-}: Props) {
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState(existingUrl ?? "");
-  const [currentKey, setCurrentKey] = useState<string | null>(
-    existingUrl ? existingUrl.split("/").pop()! : null
-  );
-  const originalKeyRef = useRef<string | null>(
-    existingUrl ? existingUrl.split("/").pop()! : null
-  );
+const ImageInput = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      onUpload,
+      onImageSelect,
+      existingUrl = null,
+      disabled = false,
+      maxSize = 10 * 1024 * 1024,
+      sizePx,
+      uploadMode = "deferred", // NEW: Default to deferred upload
+    }: Props,
+    ref
+  ) => {
+    const fileInput = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState(existingUrl ?? "");
+    const [selectedFile, setSelectedFile] = useState<File | null>(null); // NEW: Store selected file
+    const [currentKey, setCurrentKey] = useState<string | null>(
+      existingUrl ? existingUrl.split("/").pop()! : null
+    );
+    const originalKeyRef = useRef<string | null>(
+      existingUrl ? existingUrl.split("/").pop()! : null
+    );
 
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState("");
 
-  const pickFile = () => fileInput.current?.click();
+    const pickFile = () => fileInput.current?.click();
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.files?.[0];
-    if (!raw) return;
+    const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const raw = e.target.files?.[0];
+      if (!raw) return;
 
-    if (!raw.type.startsWith("image/")) {
-      setError("Only image files allowed.");
-      return;
-    }
-    if (raw.size > maxSize) {
-      setError("File too large.");
-      return;
-    }
-
-    setError("");
-    setUploading(true);
-
-    try {
-      const blob = await processImage(raw);
-      const inferredType = raw.type?.startsWith("image/")
-        ? raw.type
-        : "image/jpeg";
-      const fileKey = `${uuid()}.jpg`;
-      const previousKey = currentKey;
-
-      const { error: upErr } = await supabase.storage
-        .from("routines")
-        .upload(fileKey, blob, {
-          cacheControl: "3600",
-          contentType: inferredType,
-          upsert: false,
-        });
-
-      if (upErr) throw upErr;
-
-      // Delete the previous image (both temp uploads AND the original when replacing)
-      if (previousKey && previousKey !== fileKey && previousKey !== originalKeyRef.current) {
-        await safeDeleteImage(previousKey);
+      if (!raw.type.startsWith("image/")) {
+        setError("Only image files allowed.");
+        return;
+      }
+      if (raw.size > maxSize) {
+        setError("File too large.");
+        return;
       }
 
-      const { data } = supabase.storage.from("routines").getPublicUrl(fileKey);
-      setCurrentKey(fileKey);
-      setPreview(data?.publicUrl ?? "");
-      onUpload(fileKey);
-    } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : typeof err === "string"
-          ? err
-          : "Upload failed";
-      setError(msg);
-    } finally {
-      setUploading(false);
-    }
-  };
+      setError("");
 
-  const remove = async () => {
-    if (currentKey) {
-      // Always delete the current image when removing
-      await safeDeleteImage(currentKey);
-    }
-    setPreview("");
-    setCurrentKey(null);
-    onUpload("");
-  };
+      if (uploadMode === "deferred") {
+        // Store file locally and create preview
+        setSelectedFile(raw);
+        const previewUrl = URL.createObjectURL(raw);
+        setPreview(previewUrl);
+        onImageSelect(raw); // Pass file to parent
+        return;
+      }
 
-  return (
-    <div
-      className={styles.wrapper}
-      style={sizePx ? ({ ["--image-input-size" as string]: `${sizePx}px` } as React.CSSProperties) : undefined}
-    >
+      // Original immediate upload behavior
+      setUploading(true);
+
+      try {
+        const blob = await processImage(raw);
+        const inferredType = raw.type?.startsWith("image/")
+          ? raw.type
+          : "image/jpeg";
+        const fileKey = `${uuid()}.jpg`;
+        const previousKey = currentKey;
+
+        const { error: upErr } = await supabase.storage
+          .from("routines")
+          .upload(fileKey, blob, {
+            cacheControl: "3600",
+            contentType: inferredType,
+            upsert: false,
+          });
+
+        if (upErr) throw upErr;
+
+        // Delete the previous image (both temp uploads AND the original when replacing)
+        if (
+          previousKey &&
+          previousKey !== fileKey &&
+          previousKey !== originalKeyRef.current
+        ) {
+          await safeDeleteImage(previousKey);
+        }
+
+        const { data } = supabase.storage.from("routines").getPublicUrl(fileKey);
+        setCurrentKey(fileKey);
+        setPreview(data?.publicUrl ?? "");
+        onUpload(fileKey);
+      } catch (err) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : typeof err === "string"
+            ? err
+            : "Upload failed";
+        setError(msg);
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    // NEW: Method to upload the stored file
+    const uploadStoredFile = async (): Promise<string | null> => {
+      if (!selectedFile) return null;
+
+      setUploading(true);
+      try {
+        const blob = await processImage(selectedFile);
+        const fileKey = `${uuid()}.jpg`;
+
+        const { error: upErr } = await supabase.storage
+          .from("routines")
+          .upload(fileKey, blob, {
+            cacheControl: "3600",
+            contentType: selectedFile.type,
+            upsert: false,
+          });
+
+        if (upErr) throw upErr;
+
+        setCurrentKey(fileKey);
+        return fileKey;
+      } catch (err) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : typeof err === "string"
+            ? err
+            : "Upload failed";
+        setError(msg);
+        return null;
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    const remove = async () => {
+      if (currentKey) {
+        // Always delete the current image when removing
+        await safeDeleteImage(currentKey);
+      }
+
+      // Clean up local state
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+
+      setPreview("");
+      setCurrentKey(null);
+      setSelectedFile(null);
+      onUpload("");
+      onImageSelect(null);
+    };
+
+    // Expose upload method to parent component
+    useImperativeHandle(ref, () => ({
+      uploadStoredFile,
+    }));
+
+    return (
       <div
-        className={styles.box}
-        role="button"
-        aria-label="Choose image"
-        onClick={!disabled && !uploading ? pickFile : undefined}
+        className={styles.wrapper}
+        style={
+          sizePx
+            ? ({ ["--image-input-size" as string]: `${sizePx}px` } as React.CSSProperties)
+            : undefined
+        }
       >
-        {!preview ? (
-          <>
-            <img className={styles.icon} src="/icons/camera.svg" alt="" />
-            {uploading && (
-              <span style={{ position: "absolute", bottom: 8, fontSize: 12 }}>
-                Uploading…
-              </span>
-            )}
-          </>
-        ) : (
-          <>
-            <img className={styles.preview} src={preview} alt="Routine" />
-            <button
-              type="button"
-              className={styles.remove}
-              onClick={remove}
-              disabled={disabled || uploading}
-            >
-              remove
-            </button>
-          </>
-        )}
+        <div
+          className={styles.box}
+          role="button"
+          aria-label="Choose image"
+          onClick={!disabled && !uploading ? pickFile : undefined}
+        >
+          {!preview ? (
+            <>
+              <img className={styles.icon} src="/icons/camera.svg" alt="" />
+              {uploading && (
+                <span style={{ position: "absolute", bottom: 8, fontSize: 12 }}>
+                  Uploading…
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <img className={styles.preview} src={preview} alt="Routine" />
+              <button
+                type="button"
+                className={styles.remove}
+                onClick={remove}
+                disabled={disabled || uploading}
+              >
+                remove
+              </button>
+            </>
+          )}
+        </div>
+
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*"
+          onChange={handleFile}
+          style={{ display: "none" }}
+        />
+
+        {error && <p className={styles.error}>{error}</p>}
       </div>
+    );
+  }
+);
 
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/*"
-        onChange={handleFile}
-        style={{ display: "none" }}
-      />
+ImageInput.displayName = "ImageInput";
 
-      {error && <p className={styles.error}>{error}</p>}
-    </div>
-  );
-}
+export default ImageInput;

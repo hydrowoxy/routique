@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext"; 
@@ -33,7 +33,8 @@ export default function RoutineForm() {
   const [category, setCategory] = useState(""); 
 
   const [imageKey, setImageKey] = useState("");
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null); // NEW: Store selected file
+  const imageInputRef = useRef<{ uploadStoredFile: () => Promise<string | null> } | null>(null); // Ref to access upload method
 
   const [saving, setSaving] = useState(false);
 
@@ -58,11 +59,23 @@ export default function RoutineForm() {
       return;
     }
 
+    // Upload image if one is selected
+    let finalImageKey = imageKey;
+    if (selectedImageFile && imageInputRef.current) {
+      const uploadedKey = await imageInputRef.current.uploadStoredFile();
+      if (uploadedKey) {
+        finalImageKey = uploadedKey;
+      } else {
+        showError("Failed to upload image.");
+        return;
+      }
+    }
+
     const check = validateRoutine({
       title,
       description,
       notes,
-      imagePath: imageKey,
+      imagePath: finalImageKey,
       products,
       steps,
     });
@@ -84,7 +97,7 @@ export default function RoutineForm() {
           description: description.trim(),
           notes: notes.trim(),
           category,
-          image_path: imageKey,
+          image_path: finalImageKey,
           products: check.data!.cleanedProducts,
         })
         .select("id")
@@ -94,7 +107,7 @@ export default function RoutineForm() {
 
       const routineId = routineData.id;
 
-      // Insert steps into routine_steps table (FIXED: was "steps", now "routine_steps")
+      // Insert steps into routine_steps table
       if (check.data!.cleanedSteps.length > 0) {
         const stepsToInsert = check.data!.cleanedSteps.map((s) => ({
           routine_id: routineId,
@@ -120,17 +133,27 @@ export default function RoutineForm() {
     }
   };
 
+  const handleImageSelect = (file: File | null) => {
+    setSelectedImageFile(file);
+    if (file) {
+      // Clear any existing imageKey since we're using a new file
+      setImageKey("");
+    }
+  };
+
+  const handleImageUpload = (key: string) => {
+    setImageKey(key);
+    // Clear selected file since it's now uploaded
+    setSelectedImageFile(null);
+  };
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <ImageInput
-        existingUrl={previewUrl}
-        onUpload={(newKey) => {
-          setImageKey(newKey);
-          const { data } = supabase.storage
-            .from("routines")
-            .getPublicUrl(newKey);
-          setPreviewUrl(data?.publicUrl || "");
-        }}
+        ref={imageInputRef}
+        uploadMode="deferred"
+        onUpload={handleImageUpload}
+        onImageSelect={handleImageSelect}
       />
 
       <TitleInput value={title} onChange={setTitle} />
@@ -141,7 +164,7 @@ export default function RoutineForm() {
       <StepsInput steps={steps} onChange={setSteps} /> 
       <NotesInput value={notes} onChange={setNotes} />
 
-      <AccentButton type="submit" disabled={saving || !title.trim() || !imageKey}>
+      <AccentButton type="submit" disabled={saving || !title.trim() || (!imageKey && !selectedImageFile)}>
         {saving ? "Saving…" : "Create Routine"}
       </AccentButton>
     </form>

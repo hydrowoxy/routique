@@ -30,7 +30,9 @@ export default function RoutineCard({ routine, username, showUsername = true }: 
       </Link>
 
       {showUsername && username && (
-        <p className={styles.username}>@{username}</p>
+        <Link href={`/${username}`} className={styles.username}>
+          @{username}
+        </Link>
       )}
     </div>
   );

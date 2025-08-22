@@ -10,7 +10,7 @@ import DescriptionInput from "./DescriptionInput/DescriptionInput";
 import NotesInput from "./NotesInput/NotesInput";
 import ProductInput from "./ProductInput/ProductInput";
 import StepsInput from "./StepsInput/StepsInput"; 
-import ImageInput from "./ImageInput/ImageInput";
+import ImageInput, { type ImageInputRef } from "./ImageInput/ImageInput"; // Import the ref type
 import CategoryInput from "./CategoryInput/CategoryInput"; 
 import Loading from "../Loading/Loading";
 
@@ -33,8 +33,8 @@ export default function RoutineForm() {
   const [category, setCategory] = useState(""); 
 
   const [imageKey, setImageKey] = useState("");
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null); // NEW: Store selected file
-  const imageInputRef = useRef<{ uploadStoredFile: () => Promise<string | null> } | null>(null); // Ref to access upload method
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const imageInputRef = useRef<ImageInputRef>(null); // Updated type
 
   const [saving, setSaving] = useState(false);
 
@@ -136,14 +136,12 @@ export default function RoutineForm() {
   const handleImageSelect = (file: File | null) => {
     setSelectedImageFile(file);
     if (file) {
-      // Clear any existing imageKey since we're using a new file
       setImageKey("");
     }
   };
 
   const handleImageUpload = (key: string) => {
     setImageKey(key);
-    // Clear selected file since it's now uploaded
     setSelectedImageFile(null);
   };
 

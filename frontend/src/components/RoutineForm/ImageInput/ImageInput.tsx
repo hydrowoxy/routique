@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { v4 as uuid } from "uuid";
 import { supabase } from "@/lib/supabase";
 import { deleteImage } from "@/utils/deleteImage";
@@ -8,11 +8,18 @@ import styles from "./ImageInput.module.scss";
 
 type Props = {
   onUpload: (key: string) => void;
+  onImageSelect?: (file: File | null) => void;
   existingUrl?: string | null;
   disabled?: boolean;
   maxSize?: number;
   /** Optional: override box size, e.g. "140px" */
   sizePx?: number;
+  uploadMode?: "immediate" | "deferred";
+};
+
+// Export the ref type for TypeScript
+export type ImageInputRef = {
+  uploadStoredFile: () => Promise<string | null>;
 };
 
 const SIZE_PX = 512;
@@ -62,15 +69,18 @@ async function safeDeleteImage(key: string) {
   }
 }
 
-export default function ImageInput({
+const ImageInput = forwardRef<ImageInputRef, Props>(({
   onUpload,
+  onImageSelect,
   existingUrl = null,
   disabled = false,
   maxSize = 10 * 1024 * 1024,
   sizePx,
-}: Props) {
+  uploadMode = "deferred",
+}, ref) => {
   const fileInput = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(existingUrl ?? "");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentKey, setCurrentKey] = useState<string | null>(
     existingUrl ? existingUrl.split("/").pop()! : null
   );
@@ -97,6 +107,19 @@ export default function ImageInput({
     }
 
     setError("");
+
+    if (uploadMode === "deferred") {
+      // Store file locally and create preview
+      setSelectedFile(raw);
+      const previewUrl = URL.createObjectURL(raw);
+      setPreview(previewUrl);
+      if (onImageSelect) {
+        onImageSelect(raw);
+      }
+      return;
+    }
+
+    // Original immediate upload behavior
     setUploading(true);
 
     try {
@@ -118,7 +141,11 @@ export default function ImageInput({
       if (upErr) throw upErr;
 
       // Delete the previous image (both temp uploads AND the original when replacing)
-      if (previousKey && previousKey !== fileKey && previousKey !== originalKeyRef.current) {
+      if (
+        previousKey &&
+        previousKey !== fileKey &&
+        previousKey !== originalKeyRef.current
+      ) {
         await safeDeleteImage(previousKey);
       }
 
@@ -139,20 +166,76 @@ export default function ImageInput({
     }
   };
 
+  // Method to upload the stored file
+  const uploadStoredFile = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+
+    setUploading(true);
+    try {
+      const blob = await processImage(selectedFile);
+      const fileKey = `${uuid()}.jpg`;
+
+      const { error: upErr } = await supabase.storage
+        .from("routines")
+        .upload(fileKey, blob, {
+          cacheControl: "3600",
+          contentType: selectedFile.type,
+          upsert: false,
+        });
+
+      if (upErr) throw upErr;
+
+      setCurrentKey(fileKey);
+      return fileKey;
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+          ? err
+          : "Upload failed";
+      setError(msg);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    uploadStoredFile,
+  }));
+
   const remove = async () => {
     if (currentKey) {
       // Always delete the current image when removing
       await safeDeleteImage(currentKey);
     }
+
+    // Clean up local state
+    if (preview && preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+
     setPreview("");
     setCurrentKey(null);
+    setSelectedFile(null);
     onUpload("");
+    
+    // Only call onImageSelect if it exists
+    if (onImageSelect) {
+      onImageSelect(null);
+    }
   };
 
   return (
     <div
       className={styles.wrapper}
-      style={sizePx ? ({ ["--image-input-size" as string]: `${sizePx}px` } as React.CSSProperties) : undefined}
+      style={
+        sizePx
+          ? ({ ["--image-input-size" as string]: `${sizePx}px` } as React.CSSProperties)
+          : undefined
+      }
     >
       <div
         className={styles.box}
@@ -195,4 +278,8 @@ export default function ImageInput({
       {error && <p className={styles.error}>{error}</p>}
     </div>
   );
-}
+});
+
+ImageInput.displayName = "ImageInput";
+
+export default ImageInput;

@@ -132,21 +132,10 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    //console.log("Submitting with imageKey:", imageKey); 
-
     if (!category) {
       showError("Please select a category.");
       return;
     }
-
-    //console.log("Form data being validated:", {
-    //  title,
-    //  description, 
-    //  notes,
-    //  imagePath: imageKey,
-    //  products,
-    //  steps 
-    //});
 
     const check = validateRoutine({
       title,
@@ -211,7 +200,6 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
 
       // Delete old image if it was replaced
       if (originalKeyRef.current && originalKeyRef.current !== imageKey) {
-        //console.log("Deleting replaced image:", originalKeyRef.current); 
         await deleteImage(originalKeyRef.current);
       }
 
@@ -234,6 +222,7 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
     <form onSubmit={handleSubmit} className={styles.form}>
       <ImageInput
         existingUrl={previewUrl}
+        uploadMode="immediate" // Edit form uploads immediately
         onUpload={(newKey) => {
           setImageKey(newKey);
           const { data } = supabase.storage
@@ -241,6 +230,7 @@ export default function EditRoutineForm({ routineId }: { routineId: string }) {
             .getPublicUrl(newKey);
           setPreviewUrl(data?.publicUrl || "");
         }}
+        onImageSelect={() => {}} // Empty function since we don't need it for immediate upload
       />
       <TitleInput       value={title}       onChange={setTitle} />
       <DescriptionInput value={description} onChange={setDescription} />

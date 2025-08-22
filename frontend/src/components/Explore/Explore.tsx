@@ -8,7 +8,7 @@ import Loading from "@/components/Loading/Loading";
 import Categories from "@/components/Categories/Categories";
 
 import { CATEGORIES } from "@/lib/categories";
-import type { Category } from "@/lib/categories"; // ADD THIS IMPORT
+import type { Category } from "@/lib/categories";
 import styles from "./Explore.module.scss";
 
 import type { Database } from "@/lib/database.types";
@@ -65,7 +65,15 @@ export default function Explore() {
           }
         } else {
           if (isMounted) {
-            setRoutines(data ?? []);
+            // Transform the data to match our type
+            const transformedData = (data ?? []).map((routine) => ({
+              ...routine,
+              profiles:
+                Array.isArray(routine.profiles) && routine.profiles.length > 0
+                  ? routine.profiles[0]
+                  : null,
+            }));
+            setRoutines(transformedData);
             setLoading(false);
           }
         }
@@ -83,7 +91,7 @@ export default function Explore() {
     return () => {
       isMounted = false;
     };
-  }, [authLoading]); 
+  }, [authLoading]);
 
   const visibleRoutines =
     selectedTab === "All"
@@ -105,7 +113,7 @@ export default function Explore() {
       {loading || authLoading ? (
         <Loading />
       ) : (
-        <RoutineGrid 
+        <RoutineGrid
           routines={visibleRoutines}
           showCategoryCards={true}
           currentCategory={selectedTab}

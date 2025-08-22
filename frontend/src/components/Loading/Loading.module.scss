@@ -8,15 +8,14 @@
   justify-content: center;
   background: var(--background);
   gap: 10px; 
-  padding-top: 10vh; 
+  padding-top: 30vh; 
   justify-content: flex-start; 
-  padding-top: 32vh; 
 }
 
 .loader {
-  width: 60px;
-  height: 60px;
-  border: 3px solid transparent;
+  width: 70px;
+  height: 70px;
+  border: 6px solid transparent;
   border-top-color: var(--primary);
   border-right-color: var(--secondary);
   border-bottom-color: var(--accent);
@@ -29,13 +28,14 @@
 }
 
 .text {
-  @include fonts.text-title;
+  @include fonts.text-big-title;
+  font-weight: 500;
   color: var(--text);
   margin-top: 8px;
 }
 
 .subtext {
-  @include fonts.text-small; 
+  @include fonts.text-title; 
   color: var(--subtext);
   max-width: 280px;
   text-align: center;

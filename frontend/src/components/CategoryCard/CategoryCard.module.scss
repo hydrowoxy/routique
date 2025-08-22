@@ -1,0 +1,105 @@
+@use '@/styles/fonts' as fonts;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  border: none;
+  color: inherit;
+  position: relative;
+  cursor: pointer;
+  background: none;
+  
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.07),
+    0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 10px 25px rgba(0, 0, 0, 0.09),
+      0 6px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow:
+      0 4px 10px rgba(0, 0, 0, 0.06),
+      0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.imageContainer {
+  border: none;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.overlay {
+  border: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.content {
+  text-align: center;
+  color: white;
+  padding: 1rem;
+}
+
+.browseText {
+  @include fonts.text-title;
+  font-weight: 400;
+  margin: 0 0 0.25rem 0;
+  opacity: 0.9;
+}
+
+.title {
+  @include fonts.text-big-title;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cta {
+  @include fonts.text-small;
+  color: var(--subtext);
+  margin-top: 8px;
+  margin-bottom: 5px;
+  align-self: flex-end;
+  font-size: clamp(0.75rem, 2.3vw, 0.875rem);
+  max-width: 100%;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--text);
+  }
+}
+

@@ -1,14 +1,24 @@
 'use client';
 
-import type { Database } from '@/lib/database.types';
 import type { Category } from '@/lib/categories';
 import styles from './CategoryCard.module.scss';
 
-type Routine = Database['public']['Tables']['routines']['Row'];
+// Use the same type as RoutineGrid
+type RoutineWithProfile = {
+  id: string;
+  title: string;
+  description: string;
+  image_path: string;
+  favourite_count: number;
+  view_count: number;
+  user_id: string;
+  category: string;
+  profiles?: { username: string } | null;
+};
 
 type Props = {
   category: Category;
-  routines: Routine[];
+  routines: RoutineWithProfile[]; // Updated to match RoutineGrid type
   onCategorySelect?: (category: Category) => void;
 };
 
@@ -47,7 +57,7 @@ export default function CategoryCard({ category, routines, onCategorySelect }: P
         </div>
       </button>
       
-      <p className={styles.cta}>Explore new, fresh routines</p>
+      <p className={styles.cta}>There&apos;s more to see!</p>
     </div>
   );
 }

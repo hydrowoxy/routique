@@ -1,17 +1,84 @@
 @use '@/styles/fonts' as fonts;
 
+.container {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+}
+
+.arrow {
+  @include fonts.text-small-title;
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin-top: 5vh;
+  margin-left: 1rem;
+  margin-right: 1rem; 
+  
+  border: none;
+  border-radius: 8px;
+  background-color: #fff;
+  color: var(--text);
+  
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.09),
+    0 4px 6px rgba(0, 0, 0, 0.07);
+  
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+  
+  font-size: 1rem;
+  font-weight: 600;
+  
+  // Hide arrows on mobile/tablet
+  @media (max-width: 1024px) {
+    display: none;
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 10px 25px rgba(0, 0, 0, 0.11),
+      0 6px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow:
+      0 4px 10px rgba(0, 0, 0, 0.08),
+      0 2px 5px rgba(0, 0, 0, 0.07);
+  }
+}
+
 .tabs {
   display: flex;
   gap: 1.25rem;
-  padding: 3rem 1rem 0.5rem 1rem; // top, right, bottom, left
+  padding: 2vh 0rem 1rem 0; 
   overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
-
-  scrollbar-width: none; // hide scrollbar Firefox
-  -ms-overflow-style: none; // hide scrollbar IE/Edge
-  &::-webkit-scrollbar {
-    display: none; // hide scrollbar Chrome/Safari
+  flex: 1;
+  
+  // On mobile, restore the left padding
+  @media (max-width: 1024px) {
+    padding: 2vh 1.25rem 1rem 1.25rem;
   }
+  
+  // Hide scrollbar but keep functionality
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  // Smooth scrolling
+  scroll-behavior: smooth;
 }
 
 .tab {
@@ -19,20 +86,22 @@
   background: none;
   border: none;
   outline: none;
-  padding: 0;
+  padding-top: 4vh;
+  padding-bottom: 1vh;
   margin: 0;
-  color: var(--text);
-  cursor: pointer;
+  color: var(--subtext);
   font-weight: 400;
-}
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 
-.activeTab {
-  @include fonts.text-small-title;
-  background: none;
-  border: none;
-  outline: none;
-  padding: 0;
-  margin: 0;
-  color: var(--text);
-  font-weight: 800;
+  &:hover {
+    color: var(--text);
+  }
+
+  &.active {
+    color: var(--text);
+    font-weight: 800;
+  }
 }
